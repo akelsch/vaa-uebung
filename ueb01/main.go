@@ -12,9 +12,9 @@ import (
 )
 
 const (
-    configFile    = "mapping.csv"
     protocol      = "tcp"
     neighborCount = 3
+    controlPrefix = "c:"
 )
 
 type NeighborDirectory struct {
@@ -25,19 +25,17 @@ type NeighborDirectory struct {
 var directory = NeighborDirectory{v: make(map[int]bool)}
 
 func main() {
-    id := getIdFromArgs()
+    file, id := parseArgs()
 
-    configuration := conf.Init(configFile, id)
-    self := configuration.Find(id)
-    if self == nil {
-        log.Fatalf("Could not determine configuration for entry with ID %s", id)
-    }
+    config := conf.NewConfig(file)
+    self, err := config.Find(id)
+    errutil.HandleError(err)
 
-    listener, err := net.Listen(protocol, ":"+self.Port)
+    listener, err := net.Listen(protocol, self.GetListenAddress())
     errutil.HandleError(err)
     fmt.Printf("Node %s is listening on port %s\n", id, self.Port)
 
-    neighbors := configuration.ChooseRandNeighbors(self, neighborCount)
+    neighbors := config.ChooseRandNeighbors(self, neighborCount)
     printNeighbors(neighbors)
 
     defer listener.Close()
@@ -48,12 +46,12 @@ func main() {
     }
 }
 
-func getIdFromArgs() string {
+func parseArgs() (string, string) {
     args := os.Args[1:]
-    if len(args) == 0 {
-        log.Fatal("Usage: ueb01.exe <id>")
+    if len(args) != 2 {
+        log.Fatal("Usage: ueb01.exe <file> <id>")
     }
-    return args[0]
+    return args[0], args[1]
 }
 
 func printNeighbors(neighbors []*conf.Node) {
@@ -77,10 +75,11 @@ func handleConnection(conn net.Conn, self *conf.Node, neighbors []*conf.Node) {
     response := strings.TrimSpace(string(buf[:n]))
     log.Printf("Received: %s\n", response)
 
-    if strings.HasPrefix(response, "control:") {
-        if strings.HasSuffix(response, "start") {
+    if strings.HasPrefix(response, controlPrefix) {
+        command := strings.TrimPrefix(response, controlPrefix)
+        if command == "start" {
             sendMessages(self, neighbors)
-        } else if response == "exit" {
+        } else if command == "exit" {
             os.Exit(2)
         }
     } else {
@@ -91,18 +90,19 @@ func handleConnection(conn net.Conn, self *conf.Node, neighbors []*conf.Node) {
 func sendMessages(self *conf.Node, neighbors []*conf.Node) {
     directory.mu.Lock()
     defer directory.mu.Unlock()
+
     for i := range neighbors {
-        if called, ok := directory.v[i]; !ok || !called {
-            node := neighbors[i]
-            conn, err := net.Dial(protocol, node.CreateAddress())
+        if alreadyCalled, ok := directory.v[i]; !ok || !alreadyCalled {
+            neighbor := neighbors[i]
+            conn, err := net.Dial(protocol, neighbor.GetDialAddress())
             if err != nil {
-                log.Printf("Could not connect to node %s", node.Id)
+                log.Printf("Could not connect to node %s", neighbor.Id)
             } else {
                 payload := []byte(self.Id)
                 _, err := conn.Write(payload)
                 errutil.HandleError(err)
                 directory.v[i] = true
-                log.Printf("Sent %s to node %s\n", payload, node.Id)
+                log.Printf("Sent %s to node %s\n", payload, neighbor.Id)
             }
         }
     }
