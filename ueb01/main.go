@@ -8,7 +8,6 @@ import (
     "net"
     "os"
     "strings"
-    "sync"
 )
 
 const (
@@ -17,12 +16,7 @@ const (
     controlPrefix = "c:"
 )
 
-type NeighborDirectory struct {
-    mu sync.Mutex
-    v  map[int]bool
-}
-
-var directory = NeighborDirectory{v: make(map[int]bool)}
+var directory = *conf.NewNeighborDirectory()
 
 func main() {
     file, id := parseArgs()
@@ -88,11 +82,9 @@ func handleConnection(conn net.Conn, self *conf.Node, neighbors []*conf.Node) {
 }
 
 func sendMessages(self *conf.Node, neighbors []*conf.Node) {
-    directory.mu.Lock()
-    defer directory.mu.Unlock()
-
+    directory.Lock()
     for i := range neighbors {
-        if alreadyCalled, ok := directory.v[i]; !ok || !alreadyCalled {
+        if directory.IsRemaining(i) {
             neighbor := neighbors[i]
             conn, err := net.Dial(protocol, neighbor.GetDialAddress())
             if err != nil {
@@ -101,9 +93,10 @@ func sendMessages(self *conf.Node, neighbors []*conf.Node) {
                 payload := []byte(self.Id)
                 _, err := conn.Write(payload)
                 errutil.HandleError(err)
-                directory.v[i] = true
+                directory.Set(i)
                 log.Printf("Sent %s to node %s\n", payload, neighbor.Id)
             }
         }
     }
+    directory.Unlock()
 }
