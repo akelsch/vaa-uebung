@@ -69,22 +69,34 @@ func handleConnection(conn net.Conn, self *conf.Node, neighbors []*conf.Node) {
     response := strings.TrimSpace(string(buf[:n]))
     log.Printf("Received: %s\n", response)
 
+    // Control messages
     if strings.HasPrefix(response, controlPrefix) {
         command := strings.TrimPrefix(response, controlPrefix)
         if command == "start" {
+            directory.ResetSent()
             sendMessages(self, neighbors)
         } else if command == "exit" {
+            // TODO exit all
             os.Exit(2)
+        } else if command == "dir" {
+            fmt.Println(directory)
         }
-    } else {
-        sendMessages(self, neighbors)
+    }
+
+    // Messages by other nodes
+    for i := range neighbors {
+        if response == neighbors[i].Id {
+            directory.SetReceived(i)
+            sendMessages(self, neighbors)
+            directory.ResetAllIfNecessary(len(neighbors))
+        }
     }
 }
 
 func sendMessages(self *conf.Node, neighbors []*conf.Node) {
     directory.Lock()
     for i := range neighbors {
-        if directory.IsRemaining(i) {
+        if directory.ShouldSendTo(i) {
             neighbor := neighbors[i]
             conn, err := net.Dial(protocol, neighbor.GetDialAddress())
             if err != nil {
@@ -93,7 +105,7 @@ func sendMessages(self *conf.Node, neighbors []*conf.Node) {
                 payload := []byte(self.Id)
                 _, err := conn.Write(payload)
                 errutil.HandleError(err)
-                directory.Set(i)
+                directory.SetSent(i)
                 log.Printf("Sent %s to node %s\n", payload, neighbor.Id)
             }
         }
