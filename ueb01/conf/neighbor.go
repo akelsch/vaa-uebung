@@ -23,7 +23,18 @@ func (nd *NeighborDirectory) Unlock() {
     nd.mu.Unlock()
 }
 
-func (nd *NeighborDirectory) ShouldSendTo(key int) bool {
+func (nd *NeighborDirectory) Reset() {
+    fmt.Println("* resetting directory *")
+    for key := range nd.sent {
+        nd.sent[key] = false
+    }
+
+    for key := range nd.received {
+        nd.received[key] = false
+    }
+}
+
+func (nd *NeighborDirectory) HasNotSentTo(key int) bool {
     v, ok := nd.sent[key]
     if !ok {
         return true
@@ -31,35 +42,28 @@ func (nd *NeighborDirectory) ShouldSendTo(key int) bool {
     return !v
 }
 
-func (nd *NeighborDirectory) SetSent(key int) {
-    nd.sent[key] = true
+func (nd *NeighborDirectory) HasAlreadyReceivedFrom(key int) bool {
+    v, ok := nd.received[key]
+    if !ok {
+        return false
+    }
+    return v
 }
 
-func (nd *NeighborDirectory) ResetSent() {
-    for key := range nd.sent {
-        nd.sent[key] = false
-    }
+func (nd *NeighborDirectory) SetSent(key int) {
+    nd.sent[key] = true
 }
 
 func (nd *NeighborDirectory) SetReceived(key int) {
     nd.received[key] = true
 }
 
-func (nd *NeighborDirectory) ResetReceived() {
-    for key := range nd.received {
-        nd.received[key] = false
-    }
-}
+func (nd *NeighborDirectory) ResetIfNecessary(supposedLen int) {
+    sentDone := areAllValuesTrue(nd.sent, supposedLen)
+    receivedDone := areAllValuesTrue(nd.received, supposedLen)
 
-func (nd *NeighborDirectory) ResetAllIfNecessary(supposedLen int) {
-    resetSent := areAllValuesTrue(nd.sent, supposedLen)
-    resetReceived := areAllValuesTrue(nd.received, supposedLen)
-
-    if resetSent && resetReceived {
-        // TODO fix resetting multiple times
-        fmt.Println("Resetting!")
-        nd.ResetSent()
-        nd.ResetReceived()
+    if sentDone && receivedDone {
+        nd.Reset()
     }
 }
 

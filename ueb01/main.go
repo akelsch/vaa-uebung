@@ -71,30 +71,33 @@ func handleConnection(conn net.Conn, self *conf.Node, neighbors []*conf.Node) {
     if strings.HasPrefix(response, controlPrefix) {
         command := strings.TrimPrefix(response, controlPrefix)
         if command == "start" {
-            directory.ResetSent()
+            directory.Lock()
+            directory.Reset()
             sendMessages(self, neighbors)
+            directory.Unlock()
         } else if command == "exit" {
             // TODO exit all
             os.Exit(2)
-        } else if command == "dir" {
-            fmt.Println(directory)
         }
     }
 
     // Messages by other nodes
     for i := range neighbors {
         if response == neighbors[i].Id {
+            directory.Lock()
+            if directory.HasAlreadyReceivedFrom(i) {
+                directory.ResetIfNecessary(len(neighbors))
+            }
             directory.SetReceived(i)
             sendMessages(self, neighbors)
-            directory.ResetAllIfNecessary(len(neighbors))
+            directory.Unlock()
         }
     }
 }
 
 func sendMessages(self *conf.Node, neighbors []*conf.Node) {
-    directory.Lock()
     for i := range neighbors {
-        if directory.ShouldSendTo(i) {
+        if directory.HasNotSentTo(i) {
             neighbor := neighbors[i]
             conn, err := net.Dial(protocol, neighbor.GetDialAddress())
             if err != nil {
@@ -108,5 +111,4 @@ func sendMessages(self *conf.Node, neighbors []*conf.Node) {
             }
         }
     }
-    directory.Unlock()
 }
