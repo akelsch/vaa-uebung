@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "fmt"
     "github.com/akelsch/vaa/ueb01/conf"
     "github.com/akelsch/vaa/ueb01/errutil"
@@ -12,26 +13,33 @@ import (
 
 const (
     protocol      = "tcp"
-    neighborCount = 3
     controlPrefix = "c:"
 )
 
 var directory = *conf.NewNeighborDirectory()
 
 func main() {
-    file, id := parseArgs()
+    file := flag.String("f", "config.csv", "path to the CSV file containing the node configuration")
+    //useGraphviz := flag.Bool("gv", false, "whether to use graphviz configuration or not, will use random neighbors otherwise")
+    id := flag.String("id", "1", "ID of the node")
+    nNeighbors := flag.Int("n", 3, "number of neighbors to the node")
+    flag.Parse()
 
-    config := conf.NewConfig(file)
-    self, err := config.Find(id)
+    // 1-2
+    config := conf.NewConfig(*file)
+    self, err := config.Find(*id)
     errutil.HandleError(err)
 
+    // 3
     listener, err := net.Listen(protocol, self.GetListenAddress())
     errutil.HandleError(err)
-    fmt.Printf("Node %s is listening on port %s\n", id, self.Port)
+    fmt.Printf("Node %s is listening on port %s\n", self.Id, self.Port)
 
-    neighbors := config.ChooseRandNeighbors(self, neighborCount)
+    // 4
+    neighbors := config.ChooseRandNeighbors(self, *nNeighbors)
     printNeighbors(neighbors)
 
+    // 5-9
     defer listener.Close()
     for {
         conn, err := listener.Accept()
@@ -40,25 +48,15 @@ func main() {
     }
 }
 
-func parseArgs() (string, string) {
-    args := os.Args[1:]
-    if len(args) != 2 {
-        log.Fatal("Usage: ueb01.exe <file> <id>")
-    }
-    return args[0], args[1]
-}
-
 func printNeighbors(neighbors []*conf.Node) {
-    fmt.Print("Neighbors: ")
-    end := len(neighbors) - 1
+    output := "Neighbors: "
     for i := range neighbors {
-        fmt.Printf("%v", *neighbors[i])
-        if i != end {
-            fmt.Printf(", ")
-        } else {
-            fmt.Println()
+        output += fmt.Sprintf("%v", *neighbors[i])
+        if i != len(neighbors)-1 {
+            output += ", "
         }
     }
+    fmt.Println(output)
 }
 
 func handleConnection(conn net.Conn, self *conf.Node, neighbors []*conf.Node) {

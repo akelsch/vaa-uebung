@@ -5,11 +5,19 @@ import (
     "github.com/akelsch/vaa/ueb01/errutil"
     "os"
     "path"
+    "strings"
 )
 
 func Parse(filename string) [][]string {
-    pwd, _ := os.Getwd()
-    file, err := os.Open(path.Join(pwd, filename))
+    var filepath string
+    if strings.HasPrefix(filename, ".") {
+        pwd, _ := os.Getwd()
+        filepath = path.Join(pwd, filename)
+    } else {
+        filepath = filename
+    }
+
+    file, err := os.Open(filepath)
     errutil.HandleError(err)
 
     rows, err := csv.NewReader(file).ReadAll()
