@@ -2,7 +2,7 @@ package conf
 
 import (
     "fmt"
-    "github.com/akelsch/vaa/ueb01/csvutil"
+    "github.com/akelsch/vaa/ueb01/a1/csvutil"
     "math/rand"
     "time"
 )

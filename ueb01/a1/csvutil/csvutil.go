@@ -2,7 +2,7 @@ package csvutil
 
 import (
     "encoding/csv"
-    "github.com/akelsch/vaa/ueb01/errutil"
+    "github.com/akelsch/vaa/ueb01/a1/errutil"
     "os"
     "path"
     "strings"
