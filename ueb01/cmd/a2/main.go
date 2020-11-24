@@ -3,8 +3,8 @@ package main
 import (
     "flag"
     "fmt"
-    "github.com/akelsch/vaa/ueb01/a2/conf"
-    "github.com/akelsch/vaa/ueb01/a2/errutil"
+    "github.com/akelsch/vaa/ueb01/internal/conf"
+    "github.com/akelsch/vaa/ueb01/internal/errutil"
     "log"
     "net"
     "os"
@@ -19,8 +19,8 @@ const (
 var directory = *conf.NewNeighborDirectory()
 
 func main() {
-    file := flag.String("f", "./testdata/config.csv", "path to the CSV file containing the node configuration")
-    gvFile := flag.String("gv", "./testdata/topology.gv", "path to the Graphviz file containing the network topology")
+    file := flag.String("f", "config.csv", "path to the CSV file containing the node configuration")
+    gvFile := flag.String("gv", "topology.gv", "path to the Graphviz file containing the network topology")
     id := flag.String("id", "1", "ID of the node")
     flag.Parse()
 
@@ -30,7 +30,7 @@ func main() {
     errutil.HandleError(err)
 
     // 3
-    _, err = net.Listen(protocol, self.GetListenAddress())
+    listener, err := net.Listen(protocol, self.GetListenAddress())
     errutil.HandleError(err)
     fmt.Printf("Node %s is listening on port %s\n", self.Id, self.Port)
 
@@ -39,12 +39,12 @@ func main() {
     printNeighbors(neighbors)
 
     // 5-9
-    //defer listener.Close()
-    //for {
-    //    conn, err := listener.Accept()
-    //    errutil.HandleError(err)
-    //    go handleConnection(conn, self, neighbors)
-    //}
+    defer listener.Close()
+    for {
+       conn, err := listener.Accept()
+       errutil.HandleError(err)
+       go handleConnection(conn, self, neighbors)
+    }
 }
 
 func printNeighbors(neighbors []*conf.Node) {

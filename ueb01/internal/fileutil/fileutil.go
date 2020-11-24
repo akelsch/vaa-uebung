@@ -2,11 +2,10 @@ package fileutil
 
 import (
     "encoding/csv"
-    "github.com/akelsch/vaa/ueb01/a2/errutil"
+    "github.com/akelsch/vaa/ueb01/internal/errutil"
     "io/ioutil"
     "os"
-    "path"
-    "strings"
+    "path/filepath"
 )
 
 func ReadCsvRows(filename string) [][]string {
@@ -27,10 +26,7 @@ func ReadBytes(filename string) []byte {
 }
 
 func canonicalize(filename string) string {
-    if strings.HasPrefix(filename, ".") {
-        pwd, _ := os.Getwd()
-        return path.Join(pwd, filename)
-    }
-
-    return filename
+    absPath, err := filepath.Abs(filename)
+    errutil.HandleError(err)
+    return absPath
 }

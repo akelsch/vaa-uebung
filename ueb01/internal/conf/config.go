@@ -2,7 +2,7 @@ package conf
 
 import (
     "fmt"
-    "github.com/akelsch/vaa/ueb01/a2/fileutil"
+    "github.com/akelsch/vaa/ueb01/internal/fileutil"
     "math/rand"
     "time"
 )

@@ -1,8 +1,8 @@
 package conf;
 
 import (
-    "github.com/akelsch/vaa/ueb01/a2/errutil"
-    "github.com/akelsch/vaa/ueb01/a2/fileutil"
+    "github.com/akelsch/vaa/ueb01/internal/errutil"
+    "github.com/akelsch/vaa/ueb01/internal/fileutil"
     "github.com/awalterschulze/gographviz"
 )
 

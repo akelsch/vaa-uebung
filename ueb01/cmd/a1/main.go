@@ -3,8 +3,8 @@ package main
 import (
     "flag"
     "fmt"
-    "github.com/akelsch/vaa/ueb01/a1/conf"
-    "github.com/akelsch/vaa/ueb01/a1/errutil"
+    "github.com/akelsch/vaa/ueb01/internal/conf"
+    "github.com/akelsch/vaa/ueb01/internal/errutil"
     "log"
     "net"
     "os"
