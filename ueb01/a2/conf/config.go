@@ -2,7 +2,7 @@ package conf
 
 import (
     "fmt"
-    "github.com/akelsch/vaa/ueb01/a2/csvutil"
+    "github.com/akelsch/vaa/ueb01/a2/fileutil"
     "math/rand"
     "time"
 )
@@ -12,8 +12,8 @@ type config struct {
 }
 
 func NewConfig(filename string) *config {
-    var c config
-    for _, row := range csvutil.Parse(filename) {
+    c := config{}
+    for _, row := range fileutil.ReadCsvRows(filename) {
         c.nodes = append(c.nodes, Node{
             Id:   row[0],
             Host: row[1],

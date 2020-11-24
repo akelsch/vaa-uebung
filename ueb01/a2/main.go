@@ -35,9 +35,8 @@ func main() {
     fmt.Printf("Node %s is listening on port %s\n", self.Id, self.Port)
 
     // 4
-    //neighbors := config.ChooseRandNeighbors(self, *nNeighbors)
-    //printNeighbors(neighbors)
-    fmt.Println(*gvFile)
+    neighbors := config.ChooseNeighborsByGraph(self, *gvFile)
+    printNeighbors(neighbors)
 
     // 5-9
     //defer listener.Close()

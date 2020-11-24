@@ -20,7 +20,6 @@ var directory = *conf.NewNeighborDirectory()
 
 func main() {
     file := flag.String("f", "config.csv", "path to the CSV file containing the node configuration")
-    //useGraphviz := flag.Bool("gv", false, "whether to use graphviz configuration or not, will use random neighbors otherwise")
     id := flag.String("id", "1", "ID of the node")
     nNeighbors := flag.Int("n", 3, "number of neighbors to the node")
     flag.Parse()
