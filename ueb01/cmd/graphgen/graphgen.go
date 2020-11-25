@@ -16,36 +16,43 @@ func init() {
 }
 
 func main() {
-    nNodes := flag.Int("n", 5, "number of nodes n")
-    mEdges := flag.Int("m", 6, "number of edges m where m > n")
+    var n, m int
+    flag.IntVar(&n, "n", 5, "number of nodes n")
+    flag.IntVar(&m, "m", 6, "number of edges m where m > n")
     flag.Parse()
 
-    if *mEdges <= *nNodes {
+    mMax := (n * (n - 1)) / 2
+    if m > mMax {
+        log.Fatalf("The number of edges m may not exceed %d", mMax)
+    }
+
+    // Effectively requiring n to be >= 4
+    if m <= n {
         log.Fatal("The number of edges m must be greater than the number of nodes n")
     }
 
+    // Create graph with nodes
     graph := gographviz.NewGraph()
-
-    for i := 1; i <= *nNodes; i++ {
+    for i := 1; i <= n; i++ {
         err := graph.AddNode("", strconv.Itoa(i), map[string]string{})
         errutil.HandleError(err)
     }
 
-    for i := 2; i <= *nNodes; i++ {
+    // Connect each node to another node
+    matrix := initSquareMatrix(n)
+    for i := 2; i <= n; i++ {
         j := getRandomNumber(1, i-1)
         err := graph.AddEdge(strconv.Itoa(i), strconv.Itoa(j), false, map[string]string{})
         errutil.HandleError(err)
+        registerEdge(matrix, i, j)
     }
 
-    // TODO possibly endless
-    for len(graph.Edges.Edges) < *mEdges {
-        p := strconv.Itoa(getRandomNumber(1, *nNodes))
-        q := strconv.Itoa(getRandomNumber(1, *nNodes))
-
-        if isEdgeSuitable(graph, p, q) {
-            err := graph.AddEdge(p, q, false, map[string]string{})
-            errutil.HandleError(err)
-        }
+    // Fill with random remaining edges
+    for existsRemainingEdge(matrix) && len(graph.Edges.Edges) < m {
+        i, j := getRandomRemainingEdge(matrix)
+        err := graph.AddEdge(strconv.Itoa(i), strconv.Itoa(j), false, map[string]string{})
+        errutil.HandleError(err)
+        registerEdge(matrix, i, j)
     }
 
     fmt.Print(graph)
@@ -55,15 +62,50 @@ func getRandomNumber(min, max int) int {
     return rand.Intn(max-min+1) + min
 }
 
-func isEdgeSuitable(graph *gographviz.Graph, p, q string) bool {
-    edges := graph.Edges.Edges
-    for i := range edges {
-        edge := edges[i]
-        // do not allow duplicates or loops
-        if (edge.Dst == p && edge.Src == q) || (edge.Dst == q && edge.Src == p) || p == q {
-            return false
+func initSquareMatrix(n int) *[][]bool {
+    var matrix [][]bool
+    for i := 0; i < n; i++ {
+        matrix = append(matrix, []bool{})
+        for j := 0; j < n; j++ {
+            b := false
+            // Diagonal with loops
+            if i == j {
+                b = true
+            }
+            matrix[i] = append(matrix[i], b)
+        }
+    }
+    return &matrix
+}
+
+func registerEdge(matrix *[][]bool, i, j int) {
+    p := i - 1
+    q := j - 1
+    // Unidirectional edges so (p,q)=(q,p)
+    (*matrix)[p][q] = true
+    (*matrix)[q][p] = true
+}
+
+func existsRemainingEdge(matrix *[][]bool) bool {
+    for _, row := range *matrix {
+        for _, elem := range row {
+            if elem == false {
+                return true
+            }
         }
     }
 
-    return true
+    return false
+}
+
+func getRandomRemainingEdge(matrix *[][]bool) (int, int) {
+    for _, randRow := range rand.Perm(len(*matrix)) {
+        for _, randCol := range rand.Perm(len((*matrix)[randRow])) {
+            if (*matrix)[randRow][randCol] == false {
+                return randRow + 1, randCol + 1
+            }
+        }
+    }
+
+    return 0, 0
 }
