@@ -4,15 +4,15 @@ import (
     "flag"
     "fmt"
     "github.com/akelsch/vaa/ueb01/internal/errutil"
+    "github.com/akelsch/vaa/ueb01/internal/randutil"
     "github.com/awalterschulze/gographviz"
     "log"
     "math/rand"
     "strconv"
-    "time"
 )
 
 func init() {
-    rand.Seed(time.Now().UnixNano())
+    randutil.Init()
 }
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
     // Connect each node to another node
     matrix := initSquareMatrix(n)
     for i := 2; i <= n; i++ {
-        j := getRandomNumber(1, i-1)
+        j := randutil.RandomInt(1, i-1)
         err := graph.AddEdge(strconv.Itoa(i), strconv.Itoa(j), false, map[string]string{})
         errutil.HandleError(err)
         registerEdge(matrix, i, j)
@@ -56,10 +56,6 @@ func main() {
     }
 
     fmt.Print(graph)
-}
-
-func getRandomNumber(min, max int) int {
-    return rand.Intn(max-min+1) + min
 }
 
 func initSquareMatrix(n int) *[][]bool {
