@@ -14,11 +14,8 @@ type Config struct {
     Neighbors []*Node
 }
 
-func NewConfig() *Config {
-    return &Config{}
-}
-
-func (c *Config) Init(filename string, id string) {
+func NewConfig(filename string, id string) *Config {
+    c := &Config{}
     for _, row := range fileutil.ReadCsvRows(filename) {
         c.all = append(c.all, Node{
             Id:   row[0],
@@ -30,6 +27,8 @@ func (c *Config) Init(filename string, id string) {
     self, err := c.find(id)
     errutil.HandleError(err)
     c.Self = self
+
+    return c
 }
 
 func (c *Config) find(id string) (*Node, error) {

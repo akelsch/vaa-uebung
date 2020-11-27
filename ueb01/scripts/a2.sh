@@ -9,7 +9,7 @@ NODE_COUNT=$1
 
 CMDLINE="tail -q "
 for i in $(seq -w 1 "$NODE_COUNT"); do
-  CMDLINE+=">(a2.exe -f ./configs/config.csv -gv ./configs/topology.gv -id ${i} 2>&1 | sed -e 's/^/[${i}]    /;') "
+  CMDLINE+=">(mynode.exe -f ./configs/config.csv -gv ./configs/topology.gv -id ${i} 2>&1 | sed -e 's/^/[${i}]    /;') "
 done
 
 eval "${CMDLINE}"
