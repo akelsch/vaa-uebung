@@ -6,10 +6,12 @@ import (
     "log"
 )
 
-func (h *ConnectionHandler) handleApplicationMessage(message *pb.ApplicationMessage) {
-    log.Printf("Received application message: %s\n", message.Body)
+func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
+    am := message.GetApplicationMessage()
+    log.Printf("Received application message: %s\n", am.Body)
+
     for i := range h.conf.Neighbors {
-        if message.Body == h.conf.Neighbors[i].Id {
+        if am.Body == h.conf.Neighbors[i].Id {
             h.dir.Lock()
             if h.dir.HasAlreadyReceivedFrom(i) {
                 h.dir.ResetIfNecessary(len(h.conf.Neighbors))

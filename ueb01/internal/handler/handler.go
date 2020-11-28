@@ -9,11 +9,9 @@ import (
     "io"
     "log"
     "net"
-    "sync"
 )
 
 type ConnectionHandler struct {
-    mu   sync.Mutex
     ln   *net.Listener
     Quit chan interface{}
     conf *config.Config
@@ -49,9 +47,9 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
 
     switch message.Msg.(type) {
     case *pb.Message_ControlMessage:
-        h.handleControlMessage(message.GetControlMessage())
+        h.handleControlMessage(message)
     case *pb.Message_ApplicationMessage:
-        h.handleApplicationMessage(message.GetApplicationMessage())
+        h.handleApplicationMessage(message)
     }
 }
 
@@ -67,6 +65,7 @@ func (h *ConnectionHandler) sendToRemainingNeighbors(message *pb.Message) {
                 errutil.HandleError(err)
                 _, err = conn.Write(bytes)
                 errutil.HandleError(err)
+                conn.Close()
                 h.dir.SetSent(i)
                 log.Printf("Sent message to node %s\n", neighbor.Id)
             }

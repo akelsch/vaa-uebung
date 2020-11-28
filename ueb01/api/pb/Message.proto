@@ -7,8 +7,9 @@ import "ControlMessage.proto";
 import "ApplicationMessage.proto";
 
 message Message {
+  string sender = 1;
   oneof msg {
-    ControlMessage control_message = 1;
-    ApplicationMessage application_message = 2;
+    ControlMessage control_message = 2;
+    ApplicationMessage application_message = 3;
   }
 }
