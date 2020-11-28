@@ -1,4 +1,4 @@
-package conf
+package directory
 
 import (
     "sync"

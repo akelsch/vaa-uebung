@@ -2,6 +2,16 @@ package pbutil
 
 import "github.com/akelsch/vaa/ueb01/api/pb"
 
+func CreateControlMessage(command pb.ControlMessage_Command) *pb.Message {
+    return &pb.Message{
+        Msg: &pb.Message_ControlMessage{
+            ControlMessage: &pb.ControlMessage{
+                Command: command,
+            },
+        },
+    }
+}
+
 func CreateApplicationMessage(body string) *pb.Message {
     return &pb.Message{
         Msg: &pb.Message_ApplicationMessage{

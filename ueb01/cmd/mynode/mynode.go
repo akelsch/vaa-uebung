@@ -3,14 +3,16 @@ package main
 import (
     "flag"
     "fmt"
-    "github.com/akelsch/vaa/ueb01/internal/conf"
-    "github.com/akelsch/vaa/ueb01/internal/connhandler"
+    "github.com/akelsch/vaa/ueb01/internal/config"
     "github.com/akelsch/vaa/ueb01/internal/errutil"
+    "github.com/akelsch/vaa/ueb01/internal/handler"
     "github.com/akelsch/vaa/ueb01/internal/randutil"
+    "log"
     "net"
 )
 
 func init() {
+    log.SetFlags(log.Ltime | log.Lmicroseconds)
     randutil.Init()
 }
 
@@ -21,28 +23,40 @@ func main() {
     n := flag.Int("n", 0, "number of random neighbors if not using Graphviz")
     flag.Parse()
 
+    log.SetPrefix(fmt.Sprintf("[node-%03s] ", *id))
+
     // 1-2
-    config := conf.NewConfig(*file, *id)
+    conf := config.NewConfig(*file, *id)
 
     // 3
-    listener, err := net.Listen("tcp", config.Self.GetListenAddress())
+    addr := conf.Self.GetListenAddress()
+    ln, err := net.Listen("tcp", addr)
     errutil.HandleError(err)
-    fmt.Printf("Node %s is listening on port %s\n", config.Self.Id, config.Self.Port)
+    log.Printf("Listening on port %s\n", addr)
 
     // 4
     if *n != 0 {
-        config.ChooseNeighborsRandomly(*n)
+        conf.ChooseNeighborsRandomly(*n)
     } else {
-        config.ChooseNeighborsByGraph(*gvFile)
+        conf.ChooseNeighborsByGraph(*gvFile)
     }
-    config.PrintNeighbors()
+    conf.PrintNeighbors()
 
     // 5-9
-    handler := connhandler.NewConnectionHandler(config)
-    defer listener.Close()
+    h := handler.NewConnectionHandler(&ln, conf)
     for {
-        conn, err := listener.Accept()
-        errutil.HandleError(err)
-        go handler.HandleConnection(conn)
+        conn, err := ln.Accept()
+        if err != nil {
+            select {
+            case <-h.Quit:
+                // Listener has been closed by a goroutine
+                log.Println("Goodbye!")
+                return
+            default:
+                errutil.HandleError(err)
+            }
+        } else {
+            go h.HandleConnection(conn)
+        }
     }
 }

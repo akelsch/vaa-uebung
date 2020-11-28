@@ -1,10 +1,11 @@
-package conf
+package config
 
 import (
     "fmt"
     "github.com/akelsch/vaa/ueb01/internal/errutil"
     "github.com/akelsch/vaa/ueb01/internal/fileutil"
     "github.com/awalterschulze/gographviz"
+    "log"
     "math/rand"
 )
 
@@ -78,11 +79,11 @@ func (c *Config) PrintNeighbors() {
 
     output := "Neighbors: "
     for i := range c.Neighbors {
-        output += fmt.Sprintf("%v", *c.Neighbors[i])
+        output += fmt.Sprintf("%v", c.Neighbors[i].Id)
         if i != lastIndex {
             output += ", "
         }
     }
 
-    fmt.Println(output)
+    log.Println(output)
 }
