@@ -1,0 +1,14 @@
+syntax = "proto3";
+package ueb01;
+
+option go_package = "github.com/akelsch/vaa/ueb01/api/pb";
+
+import "ControlMessage.proto";
+import "ApplicationMessage.proto";
+
+message Message {
+  oneof msg {
+    ControlMessage control_message = 1;
+    ApplicationMessage application_message = 2;
+  }
+}

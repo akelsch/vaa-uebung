@@ -1,7 +1,6 @@
 package conf
 
 import (
-    "fmt"
     "sync"
 )
 
@@ -24,7 +23,6 @@ func (nd *NeighborDirectory) Unlock() {
 }
 
 func (nd *NeighborDirectory) Reset() {
-    fmt.Println("* resetting directory *")
     for key := range nd.sent {
         nd.sent[key] = false
     }
