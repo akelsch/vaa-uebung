@@ -1,11 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ $# -ne 1 ]] || ! [[ $1 =~ ^[0-9]+$ ]]; then
-  echo "Usage: a3.sh <number of files>"
+  echo "Usage: a3.sh <number of graphs>"
   exit 1
 fi
 
 NUM_FILES=$1
+
+DST_DIR="./configs/gen/"
+mkdir -p $DST_DIR
 
 echo "n,m"
 for i in $(seq -w 1 "$NUM_FILES"); do
@@ -23,5 +26,5 @@ for i in $(seq -w 1 "$NUM_FILES"); do
 
   echo "${NODE_COUNT},${EDGE_COUNT}"
 
-  eval "graphgen.exe -n ${NODE_COUNT} -m ${EDGE_COUNT} > ./configs/gen/${i}.gv"
+  eval "graphgen.exe -n ${NODE_COUNT} -m ${EDGE_COUNT} > ${DST_DIR}${i}.gv"
 done
