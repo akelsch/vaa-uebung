@@ -15,7 +15,7 @@ type ConnectionHandler struct {
     ln   *net.Listener
     Quit chan interface{}
     conf *config.Config
-    dir  *directory.NeighborDirectory
+    dir  *directory.MessageDirectory
 }
 
 func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHandler {
@@ -23,7 +23,7 @@ func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHand
         ln:   ln,
         Quit: make(chan interface{}),
         conf: conf,
-        dir:  directory.NewNeighborDirectory(),
+        dir:  directory.NewMessageDirectory(),
     }
 }
 
@@ -50,25 +50,7 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
         h.handleControlMessage(message)
     case *pb.Message_ApplicationMessage:
         h.handleApplicationMessage(message)
-    }
-}
-
-func (h *ConnectionHandler) sendToRemainingNeighbors(message *pb.Message) {
-    for i := range h.conf.Neighbors {
-        if h.dir.HasNotSentTo(i) {
-            neighbor := h.conf.Neighbors[i]
-            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-            if err != nil {
-                log.Printf("Could not connect to node %s", neighbor.Id)
-            } else {
-                bytes, err := proto.Marshal(message)
-                errutil.HandleError(err)
-                _, err = conn.Write(bytes)
-                errutil.HandleError(err)
-                conn.Close()
-                h.dir.SetSent(i)
-                log.Printf("Sent message to node %s\n", neighbor.Id)
-            }
-        }
+    case *pb.Message_Rumor:
+        h.handleRumorMessage(message)
     }
 }

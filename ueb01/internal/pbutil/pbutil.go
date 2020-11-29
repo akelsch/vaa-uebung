@@ -22,3 +22,12 @@ func CreateApplicationMessage(body string) *pb.Message {
         },
     }
 }
+
+func CreateRumorMessage(sender string, rumor *pb.Rumor) *pb.Message {
+    return &pb.Message{
+        Sender: sender,
+        Msg: &pb.Message_Rumor{
+            Rumor: rumor,
+        },
+    }
+}

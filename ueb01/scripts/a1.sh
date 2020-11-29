@@ -2,7 +2,7 @@
 
 if [[ $# -ne 1 ]] || ! [[ $1 =~ ^[0-9]+$ ]]; then
   echo "Usage: a1.sh <number of nodes>"
-  exit 2
+  exit 1
 fi
 
 NODE_COUNT=$1

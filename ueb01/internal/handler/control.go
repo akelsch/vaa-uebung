@@ -16,8 +16,8 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
     switch cm.Command {
     case pb.ControlMessage_START:
         h.dir.Lock()
-        h.dir.Reset()
-        h.sendToRemainingNeighbors(pbutil.CreateApplicationMessage(h.conf.Self.Id))
+        h.dir.Neighbors.Reset()
+        h.propagateIdToNeighbors()
         h.dir.Unlock()
     case pb.ControlMessage_EXIT:
         close(h.Quit)

@@ -1,0 +1,8 @@
+syntax = "proto3";
+package ueb01;
+
+option go_package = "github.com/akelsch/vaa/ueb01/api/pb";
+
+message Rumor {
+  string content = 1;
+}
