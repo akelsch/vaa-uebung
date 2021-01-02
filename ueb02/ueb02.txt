@@ -1,0 +1,24 @@
+--- Variablen ---
+n: Anzahl Philosophen
+m: Obere Schranke der Zeitpunkte 1..m
+s: Anzahl zufälliger Startnachbarn (Koordinator)
+p: Anzahl zufälliger Nachbarn
+A_max: Abstimmungsrunden pro Philosoph
+
+--- Nachrichten ---
+Todo...
+
+--- Vorgehensweise ---
+"n" Philosophen bzw. Knoten in einem zufälligen zusammenhängenden Graph wollen sich auf einen Termin einigen.
+Dabei soll jeder zu den Zeitpunkten "1..m" Zeit haben.
+
+1. Jeder Philosoph P wählt einen bevorzugten Zeitpunkt t aus (zufällig?)
+2. Eine zufällige Teilmenge der Philosophen wählt einen Koordinator (Echo-based election, S.44 Kapitel 4)
+3. Der Koordinator sendet "s" zufälligen Philosophen eine Startnachricht
+    a. Der Empfänger wählt "p" zufällige Nachbarn aus
+    b. Der Empfänger tauscht danach seinen bevorzugen Zeitpunkt t mit jedem Nachbarn nacheinander
+    c. Dabei wird jeweils der Mittelwert gebildet und aufgerundet
+    d. Nach "A_max" Abstimmungsrunden werden weitere Abstimmungen ignoriert
+4. Während den Abstimmungen prüft der Koordinator periodisch, ob die Abstimmung beendet ist (Double Counting Method, S.16 Kapitel 5)
+    a. Wenn die Abstimmungen beendet sind, sammelt der Koordinator die Ergebnisse (Echo-Algorithmus)
+    b. Das Ergebnis ist entweder ein gemeinsamer Zeitpunkt oder die Feststellung, dass kein gemeinsamer Zeitpunkt gefunden wurde
