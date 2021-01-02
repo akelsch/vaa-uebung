@@ -13,6 +13,9 @@ type Config struct {
     all       []Node
     Self      *Node
     Neighbors []*Node
+    Params    struct {
+        T int
+    }
 }
 
 func NewConfig(filename string, id string) *Config {

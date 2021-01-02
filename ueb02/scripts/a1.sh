@@ -14,7 +14,7 @@ fi
 
 CMDLINE="tail -q "
 for i in $(seq 1 "$NODE_COUNT"); do
-  CMDLINE+=">(mynode.exe -f ./configs/config.csv -id ${i} -n ${NEIGHBOR_COUNT} 2>&1) "
+  CMDLINE+=">(philosopher.exe -f ./configs/config.csv -gv ./configs/topology.gv -id ${i} -m 10 2>&1) "
 done
 
 eval "$CMDLINE"
