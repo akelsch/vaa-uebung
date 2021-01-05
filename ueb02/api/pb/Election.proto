@@ -1,0 +1,14 @@
+syntax = "proto3";
+package ueb02;
+
+option go_package = "github.com/akelsch/vaa/ueb02/api/pb";
+
+message Election {
+  enum Type {
+    EXPLORER = 0;
+    ECHO = 1;
+  }
+
+  Type type = 1;
+  string initiator = 2;
+}

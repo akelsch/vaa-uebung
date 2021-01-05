@@ -52,5 +52,7 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
         h.handleApplicationMessage(message)
     case *pb.Message_Rumor:
         h.handleRumorMessage(message)
+    case *pb.Message_Election:
+        h.handleElectionMessage(message)
     }
 }

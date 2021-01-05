@@ -31,6 +31,10 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
             h.propagateExitToNeighbors(message.Sender)
             (*h.ln).Close()
         }
+    case pb.ControlMessage_START_ELECTION:
+        h.dir.Lock()
+        h.handleStartElection()
+        h.dir.Unlock()
     }
 }
 

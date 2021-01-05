@@ -6,6 +6,7 @@ option go_package = "github.com/akelsch/vaa/ueb02/api/pb";
 import "ControlMessage.proto";
 import "ApplicationMessage.proto";
 import "Rumor.proto";
+import "Election.proto";
 
 message Message {
   string sender = 1;
@@ -13,5 +14,6 @@ message Message {
     ControlMessage control_message = 2;
     ApplicationMessage application_message = 3;
     Rumor rumor = 4;
+    Election election = 5;
   }
 }

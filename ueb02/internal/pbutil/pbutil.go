@@ -31,3 +31,27 @@ func CreateRumorMessage(sender string, rumor *pb.Rumor) *pb.Message {
         },
     }
 }
+
+func CreateExplorerMessage(sender string, initiator string) *pb.Message {
+    return &pb.Message{
+        Sender: sender,
+        Msg: &pb.Message_Election{
+            Election: &pb.Election{
+                Type: pb.Election_EXPLORER,
+                Initiator: initiator,
+            },
+        },
+    }
+}
+
+func CreateEchoMessage(sender string, initiator string) *pb.Message {
+    return &pb.Message{
+        Sender: sender,
+        Msg: &pb.Message_Election{
+            Election: &pb.Election{
+                Type: pb.Election_ECHO,
+                Initiator: initiator,
+            },
+        },
+    }
+}
