@@ -23,7 +23,7 @@ func main() {
     m := flag.Int("m", 1, "Upper bound for preferred time t")
     flag.Parse()
 
-    log.SetPrefix(fmt.Sprintf("[p-%02s] ", *id))
+    log.SetPrefix(fmt.Sprintf("[philo-%03s] ", *id))
 
     // Setup configuration
     conf := config.NewConfig(*file, *id)

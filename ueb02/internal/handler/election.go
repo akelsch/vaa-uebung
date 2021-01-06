@@ -9,6 +9,7 @@ import (
     "log"
     "net"
     "strconv"
+    "time"
 )
 
 func (h *ConnectionHandler) handleStartElection() {
@@ -50,6 +51,7 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
             h.propagateEchoToNeighbors(electionDir.Initiator, electionDir.Predecessor)
         } else {
             log.Println("INITIATOR IS GREEN")
+            go h.awaitElectionVictory()
         }
     }
     h.dir.Unlock()
@@ -98,4 +100,16 @@ func (h *ConnectionHandler) propagateEchoToNeighbors(initiator string, predecess
             }
         }
     }
+}
+
+func (h *ConnectionHandler) awaitElectionVictory() {
+    time.Sleep(1 * time.Second)
+    h.dir.Lock()
+    // check if current node is still the initiator of the last election message
+    if !h.dir.Election.IsNotInitiator(h.conf.Self.Id) {
+        log.Println("ELECTION VICTORY")
+        h.conf.RegisterAllAsNeighbors()
+        // TODO choose "s" random neighbors and send them a START
+    }
+    h.dir.Unlock()
 }

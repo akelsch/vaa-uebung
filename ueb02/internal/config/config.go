@@ -6,7 +6,6 @@ import (
     "github.com/akelsch/vaa/ueb02/internal/fileutil"
     "github.com/awalterschulze/gographviz"
     "log"
-    "math/rand"
 )
 
 type Config struct {
@@ -45,15 +44,6 @@ func (c *Config) find(id string) (*Node, error) {
     return nil, fmt.Errorf("could not find configuration for entry with ID %s", id)
 }
 
-func (c *Config) ChooseNeighborsRandomly(n int) {
-    for _, randIndex := range rand.Perm(len(c.all)) {
-        other := &c.all[randIndex]
-        if len(c.Neighbors) < n && other != c.Self {
-            c.Neighbors = append(c.Neighbors, other)
-        }
-    }
-}
-
 func (c *Config) ChooseNeighborsByGraph(filename string) {
     graphAst, err := gographviz.Parse(fileutil.ReadBytes(filename))
     errutil.HandleError(err)
@@ -89,4 +79,14 @@ func (c *Config) PrintNeighbors() {
     }
 
     log.Println(output)
+}
+
+func (c *Config) RegisterAllAsNeighbors() {
+    c.Neighbors = nil
+    for i := range c.all {
+        neighbor := &c.all[i]
+        if neighbor != c.Self {
+            c.Neighbors = append(c.Neighbors, neighbor)
+        }
+    }
 }
