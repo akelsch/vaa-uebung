@@ -8,13 +8,16 @@ import (
     "google.golang.org/protobuf/proto"
     "log"
     "net"
+    "strconv"
 )
 
 func (h *ConnectionHandler) handleStartElection() {
     electionDir := h.dir.Election
 
+    electionDir.Count = 0
     electionDir.Color = directory.RED
     electionDir.Initiator = h.conf.Self.Id
+    // do not reset Predecessor as the node could potentially lose the election
     h.propagateExplorerToNeighbors(h.conf.Self.Id, "")
 }
 
@@ -31,6 +34,7 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
     electionDir := h.dir.Election
 
     h.dir.Lock()
+    h.resetForHigherInitiator(election)
     electionDir.Count++
 
     if electionDir.Color == directory.WHITE {
@@ -49,6 +53,15 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
         }
     }
     h.dir.Unlock()
+}
+
+func (h *ConnectionHandler) resetForHigherInitiator(election *pb.Election) {
+    newInitiator, _ := strconv.Atoi(election.GetInitiator())
+    oldInitiator, _ := strconv.Atoi(h.dir.Election.Initiator)
+    if oldInitiator != 0 && newInitiator > oldInitiator {
+        log.Printf("Discarding election of %d in favor for %d\n", oldInitiator, newInitiator)
+        h.dir.Election.Reset()
+    }
 }
 
 func (h *ConnectionHandler) propagateExplorerToNeighbors(initiator string, sender string) {

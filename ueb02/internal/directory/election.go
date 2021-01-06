@@ -24,6 +24,13 @@ func NewElectionDirectory() *ElectionDirectory {
     }
 }
 
+func (ed *ElectionDirectory) Reset() {
+    ed.Count = 0
+    ed.Color = WHITE
+    ed.Initiator = ""
+    ed.Predecessor = ""
+}
+
 func (ed *ElectionDirectory) IsNotInitiator(selfId string) bool {
     return selfId != ed.Initiator
 }
