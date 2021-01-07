@@ -12,6 +12,8 @@ import (
     "time"
 )
 
+const victoryTimeout = 1 * time.Second
+
 func (h *ConnectionHandler) handleStartElection() {
     electionDir := h.dir.Election
 
@@ -33,6 +35,7 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
     }
 
     electionDir := h.dir.Election
+    debounceElectionVictory(electionDir.VictoryTimer)
 
     h.dir.Lock()
     h.resetForHigherInitiator(election)
@@ -51,10 +54,17 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
             h.propagateEchoToNeighbors(electionDir.Initiator, electionDir.Predecessor)
         } else {
             log.Println("INITIATOR IS GREEN")
-            go h.awaitElectionVictory()
+            electionDir.VictoryTimer = time.AfterFunc(victoryTimeout, h.checkElectionVictory)
         }
     }
     h.dir.Unlock()
+}
+
+func debounceElectionVictory(timer *time.Timer) {
+    // await "last" election message before declaring election victory
+    if timer != nil {
+        timer.Reset(victoryTimeout)
+    }
 }
 
 func (h *ConnectionHandler) resetForHigherInitiator(election *pb.Election) {
@@ -102,8 +112,7 @@ func (h *ConnectionHandler) propagateEchoToNeighbors(initiator string, predecess
     }
 }
 
-func (h *ConnectionHandler) awaitElectionVictory() {
-    time.Sleep(1 * time.Second)
+func (h *ConnectionHandler) checkElectionVictory() {
     h.dir.Lock()
     // check if current node is still the initiator of the last election message
     if !h.dir.Election.IsNotInitiator(h.conf.Self.Id) {
