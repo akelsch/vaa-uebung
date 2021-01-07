@@ -4,5 +4,5 @@ package ueb02;
 option go_package = "github.com/akelsch/vaa/ueb02/api/pb";
 
 message ApplicationMessage {
-  string body = 1;
+  int32 body = 1;
 }

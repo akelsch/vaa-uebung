@@ -21,6 +21,9 @@ func main() {
     gvFile := flag.String("gv", "topology.gv", "path to the Graphviz file containing the network topology")
     id := flag.String("id", "1", "ID of this particular node")
     m := flag.Int("m", 1, "Upper bound for preferred time t")
+    s := flag.Int("s", 1, "Number of random philosophers starting to talk after election")
+    p := flag.Int("p", 1, "Number of random philosophers each philosopher chooses to talk with")
+    aMax := flag.Int("amax", 1, "Maximum number of talks a philosophers will accept")
     flag.Parse()
 
     log.SetPrefix(fmt.Sprintf("[philo-%03s] ", *id))
@@ -28,6 +31,9 @@ func main() {
     // Setup configuration
     conf := config.NewConfig(*file, *id)
     conf.Params.T = randutil.RandomInt(1, *m)
+    conf.Params.S = *s
+    conf.Params.P = *p
+    conf.Params.AMax = *aMax
 
     // Listen on own port from configuration
     addr := conf.Self.GetListenAddress()

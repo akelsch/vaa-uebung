@@ -15,10 +15,7 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
 
     switch cm.Command {
     case pb.ControlMessage_START:
-        h.dir.Lock()
-        h.dir.Neighbors.Reset()
-        h.propagateIdToNeighbors()
-        h.dir.Unlock()
+        h.exchangeTimeWithNeighbors()
     case pb.ControlMessage_EXIT:
         close(h.Quit)
         (*h.ln).Close()

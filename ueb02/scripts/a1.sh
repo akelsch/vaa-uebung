@@ -14,7 +14,11 @@ fi
 
 CMDLINE="tail -q "
 for i in $(seq 1 "$NODE_COUNT"); do
-  CMDLINE+=">(philosopher.exe -f ./configs/config.csv -gv ./configs/topology.gv -id ${i} -m 10 2>&1) "
+  # m -> rand(1..m) = t
+  # s -> No. of starting philosophers
+  # p -> No. of rand neighbor philosophers per philosopher
+  # amax -> Max connections per philosopher
+  CMDLINE+=">(philosopher.exe -f ./configs/config.csv -gv ./configs/topology.gv -id ${i} -m 10 -s 2 -p 2 -amax 2 2>&1) "
 done
 
 eval "$CMDLINE"

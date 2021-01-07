@@ -6,6 +6,7 @@ import (
     "github.com/akelsch/vaa/ueb02/internal/fileutil"
     "github.com/awalterschulze/gographviz"
     "log"
+    "math/rand"
 )
 
 type Config struct {
@@ -13,7 +14,10 @@ type Config struct {
     Self      *Node
     Neighbors []*Node
     Params    struct {
-        T int
+        T    int
+        S    int
+        P    int
+        AMax int
     }
 }
 
@@ -89,4 +93,15 @@ func (c *Config) RegisterAllAsNeighbors() {
             c.Neighbors = append(c.Neighbors, neighbor)
         }
     }
+}
+
+func (c *Config) GetRandomNeighbors(n int) []*Node {
+    var neighbors []*Node
+    for _, randIndex := range rand.Perm(len(c.Neighbors)) {
+        neighbors = append(neighbors, c.Neighbors[randIndex])
+        if len(neighbors) >= n {
+            break
+        }
+    }
+    return neighbors
 }

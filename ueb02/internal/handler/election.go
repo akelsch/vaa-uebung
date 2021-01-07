@@ -118,7 +118,24 @@ func (h *ConnectionHandler) checkElectionVictory() {
     if !h.dir.Election.IsNotInitiator(h.conf.Self.Id) {
         log.Println("ELECTION VICTORY")
         h.conf.RegisterAllAsNeighbors()
-        // TODO choose "s" random neighbors and send them a START
+
+        // propagate START to random neighbors
+        startingNodes := h.conf.GetRandomNeighbors(h.conf.Params.S)
+        for _, neighbor := range startingNodes {
+            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
+            if err != nil {
+                log.Printf("Could not connect to node %s\n", neighbor.Id)
+            } else {
+                bytes, err := proto.Marshal(pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_START))
+                errutil.HandleError(err)
+                _, err = conn.Write(bytes)
+                errutil.HandleError(err)
+                conn.Close()
+                log.Printf("Sent START command to node %s\n", neighbor.Id)
+            }
+        }
+
+        // TODO double counting
     }
     h.dir.Unlock()
 }

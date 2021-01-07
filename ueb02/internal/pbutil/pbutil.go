@@ -13,11 +13,11 @@ func CreateControlMessage(sender string, command pb.ControlMessage_Command) *pb.
     }
 }
 
-func CreateApplicationMessage(body string) *pb.Message {
+func CreateApplicationMessage(body int) *pb.Message {
     return &pb.Message{
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
-                Body: body,
+                Body: int32(body),
             },
         },
     }
