@@ -7,6 +7,7 @@ type MessageDirectory struct {
     Neighbors *NeighborDirectory
     Rumors    *RumorDirectory
     Election  *ElectionDirectory
+    Status    *StatusDirectory
 }
 
 func NewMessageDirectory() *MessageDirectory {
@@ -14,6 +15,7 @@ func NewMessageDirectory() *MessageDirectory {
         Neighbors: NewNeighborDirectory(),
         Rumors:    NewRumorDirectory(),
         Election:  NewElectionDirectory(),
+        Status:    NewStatusDirectory(),
     }
 }
 

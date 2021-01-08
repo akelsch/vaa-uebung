@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ueb02;
+
+option go_package = "github.com/akelsch/vaa/ueb02/api/pb";
+
+message Status {
+  enum State {
+    ACTIVE = 0;
+    PASSIVE = 1;
+  }
+
+  State state = 1;
+  int32 sent = 2;
+  int32 received = 3;
+  int32 time = 4;
+}

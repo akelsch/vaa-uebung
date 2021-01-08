@@ -7,6 +7,7 @@ import "ControlMessage.proto";
 import "ApplicationMessage.proto";
 import "Rumor.proto";
 import "Election.proto";
+import "Status.proto";
 
 message Message {
   string sender = 1;
@@ -15,5 +16,6 @@ message Message {
     ApplicationMessage application_message = 3;
     Rumor rumor = 4;
     Election election = 5;
+    Status status = 6;
   }
 }

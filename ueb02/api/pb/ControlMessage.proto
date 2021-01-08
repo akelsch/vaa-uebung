@@ -9,6 +9,7 @@ message ControlMessage {
     EXIT = 1;
     EXIT_ALL = 2;
     START_ELECTION = 4;
+    GET_STATUS = 5;
   }
 
   Command command = 1;

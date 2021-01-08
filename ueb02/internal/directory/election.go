@@ -35,6 +35,10 @@ func (ed *ElectionDirectory) Reset() {
     ed.VictoryTimer = nil
 }
 
-func (ed *ElectionDirectory) IsNotInitiator(selfId string) bool {
-    return selfId != ed.Initiator
+func (ed *ElectionDirectory) IsInitiator(selfId string) bool {
+    return ed.Initiator == selfId
+}
+
+func (ed *ElectionDirectory) IsCoordinator(selfId string) bool {
+    return ed.IsInitiator(selfId) && ed.Color == GREEN
 }

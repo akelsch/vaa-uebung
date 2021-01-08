@@ -12,6 +12,25 @@ func NewNeighborDirectory() *NeighborDirectory {
     }
 }
 
+func (nd *NeighborDirectory) Stats() (int, int) {
+    sentCount := 0
+    receivedCount := 0
+
+    for key := range nd.sent {
+        if nd.sent[key] {
+            sentCount++
+        }
+    }
+
+    for key := range nd.received {
+        if nd.received[key] {
+            receivedCount++
+        }
+    }
+
+    return sentCount, receivedCount
+}
+
 func (nd *NeighborDirectory) Reset() {
     for key := range nd.sent {
         nd.sent[key] = false

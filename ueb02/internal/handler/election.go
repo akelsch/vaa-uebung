@@ -50,11 +50,11 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
 
     if electionDir.Count == len(h.conf.Neighbors) {
         electionDir.Color = directory.GREEN
-        if electionDir.IsNotInitiator(h.conf.Self.Id) {
-            h.propagateEchoToNeighbors(electionDir.Initiator, electionDir.Predecessor)
-        } else {
+        if electionDir.IsInitiator(h.conf.Self.Id) {
             log.Println("INITIATOR IS GREEN")
             electionDir.VictoryTimer = time.AfterFunc(victoryTimeout, h.checkElectionVictory)
+        } else {
+            h.propagateEchoToNeighbors(electionDir.Initiator, electionDir.Predecessor)
         }
     }
     h.dir.Unlock()
@@ -115,7 +115,7 @@ func (h *ConnectionHandler) propagateEchoToNeighbors(initiator string, predecess
 func (h *ConnectionHandler) checkElectionVictory() {
     h.dir.Lock()
     // check if current node is still the initiator of the last election message
-    if !h.dir.Election.IsNotInitiator(h.conf.Self.Id) {
+    if h.dir.Election.IsInitiator(h.conf.Self.Id) {
         log.Println("ELECTION VICTORY")
         h.conf.RegisterAllAsNeighbors()
 
@@ -135,7 +135,34 @@ func (h *ConnectionHandler) checkElectionVictory() {
             }
         }
 
-        // TODO double counting
+        h.doubleCountResults()
     }
     h.dir.Unlock()
+}
+
+func (h *ConnectionHandler) doubleCountResults() {
+    h.dir.Status.Ticker = time.NewTicker(1000 * time.Millisecond)
+    go func() {
+        for {
+            select {
+            case <-h.dir.Status.Ticker.C:
+                for _, neighbor := range h.conf.Neighbors {
+                    conn, err := net.Dial("tcp", neighbor.GetDialAddress())
+                    if err != nil {
+                        log.Printf("Could not connect to node %s\n", neighbor.Id)
+                    } else {
+                        bytes, err := proto.Marshal(pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_GET_STATUS))
+                        errutil.HandleError(err)
+                        _, err = conn.Write(bytes)
+                        errutil.HandleError(err)
+                        conn.Close()
+                        log.Printf("Sent GET_STATUS command to node %s\n", neighbor.Id)
+                    }
+                }
+            }
+        }
+    }()
+    // TODO remove once
+    time.Sleep(1100 * time.Millisecond)
+    h.dir.Status.Ticker.Stop()
 }

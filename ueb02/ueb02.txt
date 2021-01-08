@@ -6,7 +6,9 @@ p: Anzahl zufälliger Nachbarn
 A_max: Abstimmungsrunden pro Philosoph
 
 --- Nachrichten ---
-Todo...
+ControlMessage.proto -> START_ELECTION & GET_STATUS
+Election.proto -> Echo Algorithmus
+Status.proto -> Double Counting Methode
 
 --- Vorgehensweise ---
 "n" Philosophen bzw. Knoten in einem zufälligen zusammenhängenden Graph wollen sich auf einen Termin einigen.

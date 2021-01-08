@@ -32,6 +32,8 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
         h.dir.Lock()
         h.handleStartElection()
         h.dir.Unlock()
+    case pb.ControlMessage_GET_STATUS:
+        h.handleGetStatus()
     }
 }
 
