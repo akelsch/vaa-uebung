@@ -1,35 +1,27 @@
 package handler
 
 import (
+    "fmt"
     "github.com/akelsch/vaa/ueb02/api/pb"
-    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/netutil"
     "github.com/akelsch/vaa/ueb02/internal/util/pbutil"
-    "google.golang.org/protobuf/proto"
     "log"
-    "net"
 )
 
 func (h *ConnectionHandler) handleGetStatus() {
     for _, neighbor := range h.conf.Neighbors {
-        if neighbor.Id == h.dir.Election.Predecessor {
-            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-            if err != nil {
-                log.Printf("Could not connect to node %s\n", neighbor.Id)
-            } else {
-                // status message params
-                state := pb.Status_ACTIVE
-                if !h.dir.Status.Busy {
-                    state = pb.Status_PASSIVE
-                }
-                sent, received := h.dir.Neighbors.Stats()
-
-                bytes, err := proto.Marshal(pbutil.CreateStatusMessage(h.conf.Self.Id, state, sent, received, h.conf.Params.T))
-                errutil.HandleError(err)
-                _, err = conn.Write(bytes)
-                errutil.HandleError(err)
-                conn.Close()
-                log.Printf("Sent status message to node %s\n", neighbor.Id)
+        if neighbor.Id == h.dir.Election.Predecessor { // TODO
+            // status message params
+            state := pb.Status_ACTIVE
+            if !h.dir.Status.Busy {
+                state = pb.Status_PASSIVE
             }
+            sent, received := h.dir.Neighbors.Stats()
+
+            address := neighbor.GetDialAddress()
+            message := pbutil.CreateStatusMessage(h.conf.Self.Id, state, sent, received, h.conf.Params.T)
+            successMessage := fmt.Sprintf("Sent status message to node %s", neighbor.Id)
+            netutil.SendMessage(address, message, successMessage)
         }
     }
 }
@@ -58,17 +50,10 @@ func (h *ConnectionHandler) handleStatusMessage(message *pb.Message) {
     } else {
         for _, neighbor := range h.conf.Neighbors {
             if neighbor.Id == h.dir.Election.Predecessor {
-                conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-                if err != nil {
-                    log.Printf("Could not connect to node %s\n", neighbor.Id)
-                } else {
-                    bytes, err := proto.Marshal(pbutil.CloneStatusMessage(message))
-                    errutil.HandleError(err)
-                    _, err = conn.Write(bytes)
-                    errutil.HandleError(err)
-                    conn.Close()
-                    log.Printf("Forwarded status message from node %s to node %s\n", message.GetSender(), neighbor.Id)
-                }
+                address := neighbor.GetDialAddress()
+                message := pbutil.CloneStatusMessage(message)
+                successMessage := fmt.Sprintf("Forwarded status message from node %s to node %s", message.GetSender(), neighbor.Id)
+                netutil.SendMessage(address, message, successMessage)
             }
         }
     }

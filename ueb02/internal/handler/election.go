@@ -1,13 +1,12 @@
 package handler
 
 import (
+    "fmt"
     "github.com/akelsch/vaa/ueb02/api/pb"
     "github.com/akelsch/vaa/ueb02/internal/directory"
-    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/netutil"
     "github.com/akelsch/vaa/ueb02/internal/util/pbutil"
-    "google.golang.org/protobuf/proto"
     "log"
-    "net"
     "strconv"
     "time"
 )
@@ -79,17 +78,10 @@ func (h *ConnectionHandler) resetForHigherInitiator(election *pb.Election) {
 func (h *ConnectionHandler) propagateExplorerToNeighbors(initiator string, sender string) {
     for _, neighbor := range h.conf.Neighbors {
         if neighbor.Id != sender {
-            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-            if err != nil {
-                log.Printf("Could not connect to node %s\n", neighbor.Id)
-            } else {
-                bytes, err := proto.Marshal(pbutil.CreateExplorerMessage(h.conf.Self.Id, initiator))
-                errutil.HandleError(err)
-                _, err = conn.Write(bytes)
-                errutil.HandleError(err)
-                conn.Close()
-                log.Printf("Sent explorer to node %s\n", neighbor.Id)
-            }
+            address := neighbor.GetDialAddress()
+            message := pbutil.CreateExplorerMessage(h.conf.Self.Id, initiator)
+            successMessage := fmt.Sprintf("Sent explorer to node %s", neighbor.Id)
+            netutil.SendMessage(address, message, successMessage)
         }
     }
 }
@@ -97,17 +89,10 @@ func (h *ConnectionHandler) propagateExplorerToNeighbors(initiator string, sende
 func (h *ConnectionHandler) propagateEchoToNeighbors(initiator string, predecessor string) {
     for _, neighbor := range h.conf.Neighbors {
         if neighbor.Id == predecessor {
-            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-            if err != nil {
-                log.Printf("Could not connect to node %s\n", neighbor.Id)
-            } else {
-                bytes, err := proto.Marshal(pbutil.CreateEchoMessage(h.conf.Self.Id, initiator))
-                errutil.HandleError(err)
-                _, err = conn.Write(bytes)
-                errutil.HandleError(err)
-                conn.Close()
-                log.Printf("Sent echo to node %s\n", neighbor.Id)
-            }
+            address := neighbor.GetDialAddress()
+            message := pbutil.CreateEchoMessage(h.conf.Self.Id, initiator)
+            successMessage := fmt.Sprintf("Sent echo to node %s", neighbor.Id)
+            netutil.SendMessage(address, message, successMessage)
         }
     }
 }
@@ -122,17 +107,10 @@ func (h *ConnectionHandler) checkElectionVictory() {
         // propagate START to random neighbors
         startingNodes := h.conf.GetRandomNeighbors(h.conf.Params.S)
         for _, neighbor := range startingNodes {
-            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-            if err != nil {
-                log.Printf("Could not connect to node %s\n", neighbor.Id)
-            } else {
-                bytes, err := proto.Marshal(pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_START))
-                errutil.HandleError(err)
-                _, err = conn.Write(bytes)
-                errutil.HandleError(err)
-                conn.Close()
-                log.Printf("Sent START command to node %s\n", neighbor.Id)
-            }
+            address := neighbor.GetDialAddress()
+            message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_START)
+            successMessage := fmt.Sprintf("Sent START command to node %s", neighbor.Id)
+            netutil.SendMessage(address, message, successMessage)
         }
 
         h.doubleCountResults()
@@ -148,17 +126,10 @@ func (h *ConnectionHandler) doubleCountResults() {
             case <-h.dir.Status.Ticker.C:
                 log.Println("------- COUNTING RESULTS -------")
                 for _, neighbor := range h.conf.Neighbors {
-                    conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-                    if err != nil {
-                        log.Printf("Could not connect to node %s\n", neighbor.Id)
-                    } else {
-                        bytes, err := proto.Marshal(pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_GET_STATUS))
-                        errutil.HandleError(err)
-                        _, err = conn.Write(bytes)
-                        errutil.HandleError(err)
-                        conn.Close()
-                        log.Printf("Sent GET_STATUS command to node %s\n", neighbor.Id)
-                    }
+                    address := neighbor.GetDialAddress()
+                    message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_GET_STATUS)
+                    successMessage := fmt.Sprintf("Sent GET_STATUS command to node %s", neighbor.Id)
+                    netutil.SendMessage(address, message, successMessage)
                 }
             }
         }

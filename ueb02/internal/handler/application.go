@@ -1,13 +1,12 @@
 package handler
 
 import (
+    "fmt"
     "github.com/akelsch/vaa/ueb02/api/pb"
-    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/netutil"
     "github.com/akelsch/vaa/ueb02/internal/util/pbutil"
-    "google.golang.org/protobuf/proto"
     "log"
     "math"
-    "net"
 )
 
 func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
@@ -34,20 +33,17 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
 
 func (h *ConnectionHandler) exchangeTimeWithNeighbors() {
     h.dir.Status.Busy = true
+
     randomNeighbors := h.conf.GetRandomNeighbors(h.conf.Params.P)
     for i, neighbor := range randomNeighbors {
-        conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-        if err != nil {
-            log.Printf("Could not connect to node %s\n", neighbor.Id)
-        } else {
-            bytes, err := proto.Marshal(pbutil.CreateApplicationMessage(h.conf.Self.Id, h.conf.Params.T))
-            errutil.HandleError(err)
-            _, err = conn.Write(bytes)
-            errutil.HandleError(err)
-            conn.Close()
+        address := neighbor.GetDialAddress()
+        message := pbutil.CreateApplicationMessage(h.conf.Self.Id, h.conf.Params.T)
+        successMessage := fmt.Sprintf("Sent application message to node %s: %d", neighbor.Id, h.conf.Params.T)
+
+        if netutil.SendMessage(address, message, successMessage) {
             h.dir.Neighbors.SetSent(i)
-            log.Printf("Sent application message to node %s: %d\n", neighbor.Id, h.conf.Params.T)
         }
     }
+
     h.dir.Status.Busy = false
 }
