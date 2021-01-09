@@ -14,28 +14,24 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
 
     switch cm.Command {
     case pb.ControlMessage_START:
-        h.handleStartCommand()
+        h.handleStartVote()
     case pb.ControlMessage_EXIT:
-        h.handleExitCommand()
+        h.handleExit()
     case pb.ControlMessage_EXIT_ALL:
-        h.handleExitAllCommand(message.GetSender())
+        h.handleExitAll(message.GetSender())
     case pb.ControlMessage_START_ELECTION:
-        h.handleStartElectionCommand()
+        h.handleStartElection()
     case pb.ControlMessage_GET_STATUS:
-        h.handleGetStatusCommand()
+        h.handleGetStatus()
     }
 }
 
-func (h *ConnectionHandler) handleStartCommand() {
-    h.exchangeTimeWithNeighbors()
-}
-
-func (h *ConnectionHandler) handleExitCommand() {
+func (h *ConnectionHandler) handleExit() {
     close(h.quit)
     (*h.ln).Close()
 }
 
-func (h *ConnectionHandler) handleExitAllCommand(sender string) {
+func (h *ConnectionHandler) handleExitAll(sender string) {
     select {
     case <-h.quit:
         // Already exiting, ignore
@@ -51,12 +47,4 @@ func (h *ConnectionHandler) handleExitAllCommand(sender string) {
         }
         (*h.ln).Close()
     }
-}
-
-func (h *ConnectionHandler) handleStartElectionCommand() {
-    h.handleStartElection()
-}
-
-func (h *ConnectionHandler) handleGetStatusCommand() {
-    h.handleGetStatus()
 }
