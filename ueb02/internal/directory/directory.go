@@ -5,7 +5,6 @@ import "sync"
 type MessageDirectory struct {
     mu        sync.Mutex
     Neighbors *NeighborDirectory
-    Rumors    *RumorDirectory
     Election  *ElectionDirectory
     Status    *StatusDirectory
 }
@@ -13,7 +12,6 @@ type MessageDirectory struct {
 func NewMessageDirectory() *MessageDirectory {
     return &MessageDirectory{
         Neighbors: NewNeighborDirectory(),
-        Rumors:    NewRumorDirectory(),
         Election:  NewElectionDirectory(),
         Status:    NewStatusDirectory(),
     }
