@@ -51,7 +51,6 @@ func (h *ConnectionHandler) handleStatusMessage(message *pb.Message) {
         for _, neighbor := range h.conf.Neighbors {
             if neighbor.Id == h.dir.Election.Predecessor {
                 address := neighbor.GetDialAddress()
-                message := pbutil.CloneStatusMessage(message)
                 successMessage := fmt.Sprintf("Forwarded status message from node %s to node %s", message.GetSender(), neighbor.Id)
                 netutil.SendMessage(address, message, successMessage)
             }

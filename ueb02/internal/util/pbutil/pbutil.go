@@ -61,12 +61,3 @@ func CreateStatusMessage(sender string, state pb.Status_State, sent int, receive
         },
     }
 }
-
-func CloneStatusMessage(message *pb.Message) *pb.Message {
-    return &pb.Message{
-        Sender: message.GetSender(),
-        Msg: &pb.Message_Status{
-            Status: message.GetStatus(),
-        },
-    }
-}
