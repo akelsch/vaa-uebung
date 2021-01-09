@@ -13,7 +13,7 @@ import (
 
 type ConnectionHandler struct {
     ln   *net.Listener
-    Quit chan interface{}
+    quit chan interface{}
     conf *config.Config
     dir  *directory.MessageDirectory
 }
@@ -21,9 +21,19 @@ type ConnectionHandler struct {
 func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHandler {
     return &ConnectionHandler{
         ln:   ln,
-        Quit: make(chan interface{}),
+        quit: make(chan interface{}),
         conf: conf,
         dir:  directory.NewMessageDirectory(),
+    }
+}
+
+func (h *ConnectionHandler) HandleError(err error) {
+    select {
+    case <-h.quit:
+        // Listener has been closed by a goroutine
+        log.Println("Goodbye!")
+    default:
+        errutil.HandleError(err)
     }
 }
 

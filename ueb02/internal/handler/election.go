@@ -12,9 +12,8 @@ import (
     "time"
 )
 
-const victoryTimeout = 1 * time.Second
-
 func (h *ConnectionHandler) handleStartElection() {
+    h.dir.Lock()
     electionDir := h.dir.Election
 
     electionDir.Count = 0
@@ -22,6 +21,7 @@ func (h *ConnectionHandler) handleStartElection() {
     electionDir.Initiator = h.conf.Self.Id
     // do not reset Predecessor as the node could potentially lose the election
     h.propagateExplorerToNeighbors(h.conf.Self.Id, "")
+    h.dir.Unlock()
 }
 
 func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
@@ -52,7 +52,7 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
         electionDir.Color = directory.GREEN
         if electionDir.IsInitiator(h.conf.Self.Id) {
             log.Println("INITIATOR IS GREEN")
-            electionDir.VictoryTimer = time.AfterFunc(victoryTimeout, h.checkElectionVictory)
+            electionDir.VictoryTimer = time.AfterFunc(1000*time.Millisecond, h.checkElectionVictory)
         } else {
             h.propagateEchoToNeighbors(electionDir.Initiator, electionDir.Predecessor)
         }
@@ -63,7 +63,7 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
 func debounceElectionVictory(timer *time.Timer) {
     // await "last" election message before declaring election victory
     if timer != nil {
-        timer.Reset(victoryTimeout)
+        timer.Reset(1000 * time.Millisecond)
     }
 }
 

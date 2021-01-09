@@ -1,12 +1,11 @@
 package handler
 
 import (
+    "fmt"
     "github.com/akelsch/vaa/ueb02/api/pb"
-    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/netutil"
     "github.com/akelsch/vaa/ueb02/internal/util/pbutil"
-    "google.golang.org/protobuf/proto"
     "log"
-    "net"
 )
 
 func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
@@ -15,42 +14,50 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
 
     switch cm.Command {
     case pb.ControlMessage_START:
-        h.exchangeTimeWithNeighbors()
+        h.handleStartCommand()
     case pb.ControlMessage_EXIT:
-        close(h.Quit)
-        (*h.ln).Close()
+        h.handleExitCommand()
     case pb.ControlMessage_EXIT_ALL:
-        select {
-        case <-h.Quit:
-            // Already exiting, ignore
-        default:
-            close(h.Quit)
-            h.propagateExitToNeighbors(message.Sender)
-            (*h.ln).Close()
-        }
+        h.handleExitAllCommand(message.GetSender())
     case pb.ControlMessage_START_ELECTION:
-        h.dir.Lock()
-        h.handleStartElection()
-        h.dir.Unlock()
+        h.handleStartElectionCommand()
     case pb.ControlMessage_GET_STATUS:
-        h.handleGetStatus()
+        h.handleGetStatusCommand()
     }
 }
 
-func (h *ConnectionHandler) propagateExitToNeighbors(sender string) {
-    for _, neighbor := range h.conf.Neighbors {
-        if neighbor.Id != sender {
-            conn, err := net.Dial("tcp", neighbor.GetDialAddress())
-            if err == nil {
-                bytes, err := proto.Marshal(pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_EXIT_ALL))
-                errutil.HandleError(err)
-                _, err = conn.Write(bytes)
-                conn.Close()
-                // Ignore write errors as other node could have exited
-                if err == nil {
-                    log.Printf("Propagated exit to node %s\n", neighbor.Id)
-                }
+func (h *ConnectionHandler) handleStartCommand() {
+    h.exchangeTimeWithNeighbors()
+}
+
+func (h *ConnectionHandler) handleExitCommand() {
+    close(h.quit)
+    (*h.ln).Close()
+}
+
+func (h *ConnectionHandler) handleExitAllCommand(sender string) {
+    select {
+    case <-h.quit:
+        // Already exiting, ignore
+    default:
+        close(h.quit)
+        for _, neighbor := range h.conf.Neighbors {
+            if neighbor.Id != sender {
+                address := neighbor.GetDialAddress()
+                message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_EXIT_ALL)
+                successMessage := fmt.Sprintf("Propagated exit to node %s", neighbor.Id)
+                netutil.SendMessageIgnoringErrors(address, message, successMessage)
             }
         }
+        (*h.ln).Close()
     }
 }
+
+func (h *ConnectionHandler) handleStartElectionCommand() {
+    h.handleStartElection()
+}
+
+func (h *ConnectionHandler) handleGetStatusCommand() {
+    h.handleGetStatus()
+}
+

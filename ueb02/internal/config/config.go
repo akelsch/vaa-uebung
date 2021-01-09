@@ -5,7 +5,6 @@ import (
     "github.com/akelsch/vaa/ueb02/internal/util/errutil"
     "github.com/akelsch/vaa/ueb02/internal/util/fileutil"
     "github.com/awalterschulze/gographviz"
-    "log"
     "math/rand"
 )
 
@@ -71,7 +70,7 @@ func (c *Config) ChooseNeighborsByGraph(filename string) {
     }
 }
 
-func (c *Config) PrintNeighbors() {
+func (c *Config) NeighborsToString() string {
     lastIndex := len(c.Neighbors) - 1
 
     output := "Neighbors: "
@@ -82,7 +81,7 @@ func (c *Config) PrintNeighbors() {
         }
     }
 
-    log.Println(output)
+    return output
 }
 
 func (c *Config) RegisterAllAsNeighbors() {

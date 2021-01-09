@@ -26,7 +26,7 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
     if h.conf.Params.AMax > 0 {
         h.conf.Params.AMax--
         oldT := h.conf.Params.T
-        h.conf.Params.T = int(math.Ceil(float64(h.conf.Params.T + t2) / 2))
+        h.conf.Params.T = int(math.Ceil(float64(h.conf.Params.T+t2) / 2))
         log.Printf("Old t = %d, new t = %d\n", oldT, h.conf.Params.T)
     }
     h.dir.Status.Busy = false
