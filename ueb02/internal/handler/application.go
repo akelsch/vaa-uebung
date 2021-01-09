@@ -2,8 +2,8 @@ package handler
 
 import (
     "github.com/akelsch/vaa/ueb02/api/pb"
-    "github.com/akelsch/vaa/ueb02/internal/errutil"
-    "github.com/akelsch/vaa/ueb02/internal/pbutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/pbutil"
     "google.golang.org/protobuf/proto"
     "log"
     "math"

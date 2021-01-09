@@ -4,7 +4,7 @@ import (
     "github.com/akelsch/vaa/ueb02/api/pb"
     "github.com/akelsch/vaa/ueb02/internal/config"
     "github.com/akelsch/vaa/ueb02/internal/directory"
-    "github.com/akelsch/vaa/ueb02/internal/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
     "google.golang.org/protobuf/proto"
     "io"
     "log"

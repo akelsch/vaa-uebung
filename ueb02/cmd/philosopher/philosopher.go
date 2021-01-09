@@ -4,9 +4,9 @@ import (
     "flag"
     "fmt"
     "github.com/akelsch/vaa/ueb02/internal/config"
-    "github.com/akelsch/vaa/ueb02/internal/errutil"
     "github.com/akelsch/vaa/ueb02/internal/handler"
-    "github.com/akelsch/vaa/ueb02/internal/randutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/randutil"
     "log"
     "net"
 )

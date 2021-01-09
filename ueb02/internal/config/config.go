@@ -2,8 +2,8 @@ package config
 
 import (
     "fmt"
-    "github.com/akelsch/vaa/ueb02/internal/errutil"
-    "github.com/akelsch/vaa/ueb02/internal/fileutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/fileutil"
     "github.com/awalterschulze/gographviz"
     "log"
     "math/rand"

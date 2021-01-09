@@ -2,7 +2,7 @@ package fileutil
 
 import (
     "encoding/csv"
-    "github.com/akelsch/vaa/ueb02/internal/errutil"
+    "github.com/akelsch/vaa/ueb02/internal/util/errutil"
     "io/ioutil"
     "os"
     "path/filepath"
