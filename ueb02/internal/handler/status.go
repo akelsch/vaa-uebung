@@ -9,20 +9,18 @@ import (
 )
 
 func (h *ConnectionHandler) handleGetStatus() {
-    for _, neighbor := range h.conf.Neighbors {
-        if neighbor.Id == h.dir.Election.Predecessor { // TODO
-            // status message params
-            state := pb.Status_ACTIVE
-            if !h.dir.Status.Busy {
-                state = pb.Status_PASSIVE
-            }
-            sent, received := h.dir.Neighbors.Stats()
-
-            address := neighbor.GetDialAddress()
-            message := pbutil.CreateStatusMessage(h.conf.Self.Id, state, sent, received, h.conf.Params.T)
-            successMessage := fmt.Sprintf("Sent status message to node %s", neighbor.Id)
-            netutil.SendMessage(address, message, successMessage)
+    if _, neighbor := h.conf.FindNeighborById(h.dir.Election.Predecessor); neighbor != nil {
+        // status message params
+        state := pb.Status_ACTIVE
+        if !h.dir.Status.Busy {
+            state = pb.Status_PASSIVE
         }
+        sent, received := h.dir.Neighbors.Stats()
+
+        address := neighbor.GetDialAddress()
+        message := pbutil.CreateStatusMessage(h.conf.Self.Id, state, sent, received, h.conf.Params.T)
+        successMessage := fmt.Sprintf("Sent status message to node %s", neighbor.Id)
+        netutil.SendMessage(address, message, successMessage)
     }
 }
 
@@ -48,12 +46,10 @@ func (h *ConnectionHandler) handleStatusMessage(message *pb.Message) {
             }
         }
     } else {
-        for _, neighbor := range h.conf.Neighbors {
-            if neighbor.Id == h.dir.Election.Predecessor {
-                address := neighbor.GetDialAddress()
-                successMessage := fmt.Sprintf("Forwarded status message from node %s to node %s", message.GetSender(), neighbor.Id)
-                netutil.SendMessage(address, message, successMessage)
-            }
+        if _, neighbor := h.conf.FindNeighborById(h.dir.Election.Predecessor); neighbor != nil {
+            address := neighbor.GetDialAddress()
+            successMessage := fmt.Sprintf("Forwarded status message from node %s to node %s", message.GetSender(), neighbor.Id)
+            netutil.SendMessage(address, message, successMessage)
         }
     }
 }

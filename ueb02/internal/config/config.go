@@ -104,3 +104,13 @@ func (c *Config) GetRandomNeighbors(n int) []*Node {
     }
     return neighbors
 }
+
+func (c *Config) FindNeighborById(id string) (int, *Node) {
+    for i := range c.Neighbors {
+        if c.Neighbors[i].Id == id {
+            return i, c.Neighbors[i]
+        }
+    }
+
+    return -1, nil
+}

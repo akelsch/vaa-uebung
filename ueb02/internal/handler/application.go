@@ -16,10 +16,8 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
     log.Printf("Received application message: %d\n", t2)
 
     // register received message for double counting stats
-    for i, neighbor := range h.conf.Neighbors {
-        if neighbor.Id == message.GetSender() {
-            h.dir.Neighbors.SetReceived(i)
-        }
+    if i, neighbor := h.conf.FindNeighborById(message.GetSender()); neighbor != nil {
+        h.dir.Neighbors.SetReceived(i)
     }
 
     if h.conf.Params.AMax > 0 {

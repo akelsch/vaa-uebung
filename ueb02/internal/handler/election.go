@@ -87,13 +87,11 @@ func (h *ConnectionHandler) propagateExplorerToNeighbors(initiator string, sende
 }
 
 func (h *ConnectionHandler) propagateEchoToNeighbors(initiator string, predecessor string) {
-    for _, neighbor := range h.conf.Neighbors {
-        if neighbor.Id == predecessor {
-            address := neighbor.GetDialAddress()
-            message := pbutil.CreateEchoMessage(h.conf.Self.Id, initiator)
-            successMessage := fmt.Sprintf("Sent echo to node %s", neighbor.Id)
-            netutil.SendMessage(address, message, successMessage)
-        }
+    if _, neighbor := h.conf.FindNeighborById(predecessor); neighbor != nil {
+        address := neighbor.GetDialAddress()
+        message := pbutil.CreateEchoMessage(h.conf.Self.Id, initiator)
+        successMessage := fmt.Sprintf("Sent echo to node %s", neighbor.Id)
+        netutil.SendMessage(address, message, successMessage)
     }
 }
 

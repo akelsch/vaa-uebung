@@ -60,4 +60,3 @@ func (h *ConnectionHandler) handleStartElectionCommand() {
 func (h *ConnectionHandler) handleGetStatusCommand() {
     h.handleGetStatus()
 }
-
