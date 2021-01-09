@@ -116,7 +116,7 @@ func (h *ConnectionHandler) checkElectionVictory() {
     h.dir.Lock()
     // check if current node is still the initiator of the last election message
     if h.dir.Election.IsInitiator(h.conf.Self.Id) {
-        log.Println("ELECTION VICTORY")
+        log.Println("------- ELECTION VICTORY -------")
         h.conf.RegisterAllAsNeighbors()
 
         // propagate START to random neighbors
@@ -146,6 +146,7 @@ func (h *ConnectionHandler) doubleCountResults() {
         for {
             select {
             case <-h.dir.Status.Ticker.C:
+                log.Println("------- COUNTING RESULTS -------")
                 for _, neighbor := range h.conf.Neighbors {
                     conn, err := net.Dial("tcp", neighbor.GetDialAddress())
                     if err != nil {
@@ -162,7 +163,4 @@ func (h *ConnectionHandler) doubleCountResults() {
             }
         }
     }()
-    // TODO remove once
-    time.Sleep(1100 * time.Millisecond)
-    h.dir.Status.Ticker.Stop()
 }

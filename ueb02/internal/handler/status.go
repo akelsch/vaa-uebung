@@ -7,7 +7,6 @@ import (
     "google.golang.org/protobuf/proto"
     "log"
     "net"
-    "runtime"
 )
 
 func (h *ConnectionHandler) handleGetStatus() {
@@ -19,7 +18,7 @@ func (h *ConnectionHandler) handleGetStatus() {
             } else {
                 // status message params
                 state := pb.Status_ACTIVE
-                if runtime.NumGoroutine() == 2 {
+                if !h.dir.Status.Busy {
                     state = pb.Status_PASSIVE
                 }
                 sent, received := h.dir.Neighbors.Stats()
@@ -38,6 +37,24 @@ func (h *ConnectionHandler) handleGetStatus() {
 func (h *ConnectionHandler) handleStatusMessage(message *pb.Message) {
     if h.dir.Election.IsCoordinator(h.conf.Self.Id) {
         log.Printf("Coordinator got status from %s\n", message.GetSender())
+        statusDir := h.dir.Status
+
+        ready := statusDir.AddStatus(message, len(h.conf.Neighbors))
+        if ready {
+            log.Println("------- DOUBLE COUNT DONE -------")
+            statusDir.Ticker.Stop()
+
+            _, selfReceived := h.dir.Neighbors.Stats()
+            isValidCount := statusDir.CheckStatesAndNumberOfMessages(selfReceived)
+            if isValidCount {
+                log.Println("Double count is valid!")
+                statusDir.GetAndPrintResults(h.conf.Params.T, h.conf.Self.Id)
+                // TODO spread the result
+            } else {
+                log.Println("Double count is invalid! Restarting...")
+                statusDir.Restart()
+            }
+        }
     } else {
         for _, neighbor := range h.conf.Neighbors {
             if neighbor.Id == h.dir.Election.Predecessor {

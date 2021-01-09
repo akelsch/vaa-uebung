@@ -10,6 +10,7 @@ import (
 )
 
 func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
+    h.dir.Status.Busy = true
     am := message.GetApplicationMessage()
     t2 := int(am.GetBody())
     log.Printf("Received application message: %d\n", t2)
@@ -27,9 +28,11 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
         h.conf.Params.T = (h.conf.Params.T + t2) / 2
         log.Printf("Old t = %d, new t = %d\n", oldT, h.conf.Params.T)
     }
+    h.dir.Status.Busy = false
 }
 
 func (h *ConnectionHandler) exchangeTimeWithNeighbors() {
+    h.dir.Status.Busy = true
     randomNeighbors := h.conf.GetRandomNeighbors(h.conf.Params.P)
     for i, neighbor := range randomNeighbors {
         conn, err := net.Dial("tcp", neighbor.GetDialAddress())
@@ -45,4 +48,5 @@ func (h *ConnectionHandler) exchangeTimeWithNeighbors() {
             log.Printf("Sent application message to node %s: %d\n", neighbor.Id, h.conf.Params.T)
         }
     }
+    h.dir.Status.Busy = false
 }
