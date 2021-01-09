@@ -13,14 +13,15 @@ import (
 
 func (h *ConnectionHandler) handleStartElection() {
     h.dir.Lock()
-    electionDir := h.dir.Election
+    defer h.dir.Unlock()
 
+    electionDir := h.dir.Election
     electionDir.Count = 0
     electionDir.Color = directory.RED
     electionDir.Initiator = h.conf.Self.Id
     // do not reset Predecessor as the node could potentially lose the election
+
     h.propagateExplorerToNeighbors(h.conf.Self.Id, "")
-    h.dir.Unlock()
 }
 
 func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
@@ -33,20 +34,21 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
         log.Printf("Received echo message with ID %s from %s\n", election.GetInitiator(), message.GetSender())
     }
 
-    electionDir := h.dir.Election
-    debounceElectionVictory(electionDir.VictoryTimer)
-
     h.dir.Lock()
-    h.resetForHigherInitiator(election)
-    electionDir.Count++
+    defer h.dir.Unlock()
 
+    electionDir := h.dir.Election
+    debounceElectionVictoryCheck(electionDir.VictoryTimer)
+
+    h.resetElectionIfNecessary(election)
     if electionDir.Color == directory.WHITE {
         electionDir.Color = directory.RED
         electionDir.Initiator = election.GetInitiator()
         electionDir.Predecessor = message.GetSender()
-        h.propagateExplorerToNeighbors(electionDir.Initiator, message.GetSender())
+        h.propagateExplorerToNeighbors(electionDir.Initiator, electionDir.Predecessor)
     }
 
+    electionDir.Count++
     if electionDir.Count == len(h.conf.Neighbors) {
         electionDir.Color = directory.GREEN
         if electionDir.IsInitiator(h.conf.Self.Id) {
@@ -56,17 +58,15 @@ func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
             h.propagateEchoToNeighbors(electionDir.Initiator, electionDir.Predecessor)
         }
     }
-    h.dir.Unlock()
 }
 
-func debounceElectionVictory(timer *time.Timer) {
-    // await "last" election message before declaring election victory
+func debounceElectionVictoryCheck(timer *time.Timer) {
     if timer != nil {
         timer.Reset(1000 * time.Millisecond)
     }
 }
 
-func (h *ConnectionHandler) resetForHigherInitiator(election *pb.Election) {
+func (h *ConnectionHandler) resetElectionIfNecessary(election *pb.Election) {
     newInitiator, _ := strconv.Atoi(election.GetInitiator())
     oldInitiator, _ := strconv.Atoi(h.dir.Election.Initiator)
     if oldInitiator != 0 && newInitiator > oldInitiator {
@@ -75,9 +75,9 @@ func (h *ConnectionHandler) resetForHigherInitiator(election *pb.Election) {
     }
 }
 
-func (h *ConnectionHandler) propagateExplorerToNeighbors(initiator string, sender string) {
+func (h *ConnectionHandler) propagateExplorerToNeighbors(initiator string, predecessor string) {
     for _, neighbor := range h.conf.Neighbors {
-        if neighbor.Id != sender {
+        if neighbor.Id != predecessor {
             address := neighbor.GetDialAddress()
             message := pbutil.CreateExplorerMessage(h.conf.Self.Id, initiator)
             successMessage := fmt.Sprintf("Sent explorer to node %s", neighbor.Id)
@@ -97,12 +97,13 @@ func (h *ConnectionHandler) propagateEchoToNeighbors(initiator string, predecess
 
 func (h *ConnectionHandler) checkElectionVictory() {
     h.dir.Lock()
-    // check if current node is still the initiator of the last election message
-    if h.dir.Election.IsInitiator(h.conf.Self.Id) {
+    defer h.dir.Unlock()
+
+    if h.dir.Election.IsCoordinator(h.conf.Self.Id) {
         log.Println("------- ELECTION VICTORY -------")
         h.conf.RegisterAllAsNeighbors()
 
-        // propagate START to random neighbors
+        // propagate START command to random neighbors
         startingNodes := h.conf.GetRandomNeighbors(h.conf.Params.S)
         for _, neighbor := range startingNodes {
             address := neighbor.GetDialAddress()
@@ -111,25 +112,21 @@ func (h *ConnectionHandler) checkElectionVictory() {
             netutil.SendMessage(address, message, successMessage)
         }
 
-        h.doubleCountResults()
-    }
-    h.dir.Unlock()
-}
-
-func (h *ConnectionHandler) doubleCountResults() {
-    h.dir.Status.Ticker = time.NewTicker(1000 * time.Millisecond)
-    go func() {
-        for {
-            select {
-            case <-h.dir.Status.Ticker.C:
-                log.Println("------- COUNTING RESULTS -------")
-                for _, neighbor := range h.conf.Neighbors {
-                    address := neighbor.GetDialAddress()
-                    message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_GET_STATUS)
-                    successMessage := fmt.Sprintf("Sent GET_STATUS command to node %s", neighbor.Id)
-                    netutil.SendMessage(address, message, successMessage)
+        // start double count method to gather results
+        h.dir.Status.Ticker = time.NewTicker(1000 * time.Millisecond)
+        go func() {
+            for {
+                select {
+                case <-h.dir.Status.Ticker.C:
+                    log.Println("------- COUNTING RESULTS -------")
+                    for _, neighbor := range h.conf.Neighbors {
+                        address := neighbor.GetDialAddress()
+                        message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_GET_STATUS)
+                        successMessage := fmt.Sprintf("Sent GET_STATUS command to node %s", neighbor.Id)
+                        netutil.SendMessage(address, message, successMessage)
+                    }
                 }
             }
-        }
-    }()
+        }()
+    }
 }
