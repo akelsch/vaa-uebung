@@ -16,12 +16,19 @@ func (h *ConnectionHandler) handleStartElection() {
     defer h.dir.Unlock()
 
     electionDir := h.dir.Election
-    electionDir.Count = 0
-    electionDir.Color = directory.RED
-    electionDir.Initiator = h.conf.Self.Id
-    // do not reset Predecessor as the node could potentially lose the election
 
-    h.propagateExplorerToNeighbors(h.conf.Self.Id, "")
+    selfId, _ := strconv.Atoi(h.conf.Self.Id)
+    currentId, _ := strconv.Atoi(electionDir.Initiator)
+
+    if selfId > currentId {
+        electionDir.Count = 0
+        electionDir.Color = directory.RED
+        electionDir.Initiator = h.conf.Self.Id
+        // do not reset Predecessor as the node could potentially lose the election
+        h.propagateExplorerToNeighbors(h.conf.Self.Id, "")
+    } else {
+        log.Printf("Skipping own election in favor of %d\n", currentId)
+    }
 }
 
 func (h *ConnectionHandler) handleElectionMessage(message *pb.Message) {
@@ -69,8 +76,9 @@ func debounceElectionVictoryCheck(timer *time.Timer) {
 func (h *ConnectionHandler) resetElectionIfNecessary(election *pb.Election) {
     newInitiator, _ := strconv.Atoi(election.GetInitiator())
     oldInitiator, _ := strconv.Atoi(h.dir.Election.Initiator)
-    if oldInitiator != 0 && newInitiator > oldInitiator {
-        log.Printf("Discarding election of %d in favor for %d\n", oldInitiator, newInitiator)
+    isNotResetAlready := oldInitiator != 0
+    if isNotResetAlready && newInitiator > oldInitiator {
+        log.Printf("Discarding election of %d in favor of %d\n", oldInitiator, newInitiator)
         h.dir.Election.Reset()
     }
 }
