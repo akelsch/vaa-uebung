@@ -4,5 +4,12 @@ package ueb02;
 option go_package = "github.com/akelsch/vaa/ueb02/api/pb";
 
 message ApplicationMessage {
-  int32 body = 1;
+  enum Type {
+    START = 0;
+    ACK = 1;
+    RESULT = 2;
+  }
+
+  Type type = 1;
+  int32 body = 2;
 }

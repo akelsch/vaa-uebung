@@ -34,12 +34,16 @@ func (h *ConnectionHandler) handleStatusMessage(message *pb.Message) {
             log.Println("------- DOUBLE COUNT DONE -------")
             statusDir.Ticker.Stop()
 
-            _, selfReceived := h.dir.Neighbors.Stats()
-            isValidCount := statusDir.CheckStatesAndNumberOfMessages(selfReceived)
+            isValidCount := statusDir.CheckStatesAndNumberOfMessages(h.dir.Neighbors.Stats())
             if isValidCount {
                 log.Println("Double count is valid!")
-                statusDir.GetAndPrintResults(h.conf.Params.T, h.conf.Self.Id)
-                // TODO spread the result
+                votedTime := statusDir.GetAndPrintResults(h.conf.Params.T, h.conf.Self.Id)
+                for _, neighbor := range h.conf.Neighbors {
+                    address := neighbor.GetDialAddress()
+                    message := pbutil.CreateApplicationResultMessage(h.conf.Self.Id, votedTime)
+                    successMessage := fmt.Sprintf("Propagated vote result to %s", neighbor.Id)
+                    netutil.SendMessage(address, message, successMessage)
+                }
             } else {
                 log.Println("Double count is invalid! Restarting...")
                 statusDir.Restart()

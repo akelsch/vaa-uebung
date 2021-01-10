@@ -13,11 +13,36 @@ func CreateControlMessage(sender string, command pb.ControlMessage_Command) *pb.
     }
 }
 
-func CreateApplicationMessage(sender string, body int) *pb.Message {
+func CreateApplicationStartMessage(sender string, body int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
+                Type: pb.ApplicationMessage_START,
+                Body: int32(body),
+            },
+        },
+    }
+}
+
+func CreateApplicationAckMessage(sender string, body int) *pb.Message {
+    return &pb.Message{
+        Sender: sender,
+        Msg: &pb.Message_ApplicationMessage{
+            ApplicationMessage: &pb.ApplicationMessage{
+                Type: pb.ApplicationMessage_ACK,
+                Body: int32(body),
+            },
+        },
+    }
+}
+
+func CreateApplicationResultMessage(sender string, body int) *pb.Message {
+    return &pb.Message{
+        Sender: sender,
+        Msg: &pb.Message_ApplicationMessage{
+            ApplicationMessage: &pb.ApplicationMessage{
+                Type: pb.ApplicationMessage_RESULT,
                 Body: int32(body),
             },
         },

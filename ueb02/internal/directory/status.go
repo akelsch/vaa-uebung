@@ -29,10 +29,12 @@ func (sd *StatusDirectory) AddStatus(message *pb.Message, expectedSize int) bool
     return len(sd.fst) == expectedSize && len(sd.snd) == expectedSize
 }
 
-func (sd *StatusDirectory) CheckStatesAndNumberOfMessages(selfReceived int) bool {
+func (sd *StatusDirectory) CheckStatesAndNumberOfMessages(selfSent, selfReceived int) bool {
     all := append(sd.fst, sd.snd...)
-    sumSent := 0
-    sumReceived := selfReceived * 2 // account for application messages the coordinator gets
+
+    // account for application messages the coordinator gets
+    sumSent := selfSent * 2
+    sumReceived := selfReceived * 2
 
     for _, message := range all {
         status := message.GetStatus()
@@ -69,7 +71,7 @@ func (sd *StatusDirectory) GetAndPrintResults(selfPreferredTime int, selfId stri
         t := int(message.GetStatus().GetTime())
         results[message.GetSender()] = t
         if preferredTime != t {
-            preferredTime = -1
+            preferredTime = 0
         }
     }
 
@@ -88,7 +90,7 @@ func (sd *StatusDirectory) GetAndPrintResults(selfPreferredTime int, selfId stri
     for _, k := range keys {
         log.Println(k, "prefers", results[k])
     }
-    if preferredTime == -1 {
+    if preferredTime == 0 {
         log.Println("The voted times do not match")
     } else {
         log.Printf("The voted time is %d\n", preferredTime)

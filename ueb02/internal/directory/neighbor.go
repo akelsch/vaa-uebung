@@ -1,14 +1,14 @@
 package directory
 
 type NeighborDirectory struct {
-    sent     map[int]bool
-    received map[int]bool
+    sent     map[int]int
+    received map[int]int
 }
 
 func NewNeighborDirectory() *NeighborDirectory {
     return &NeighborDirectory{
-        sent:     make(map[int]bool),
-        received: make(map[int]bool),
+        sent:     make(map[int]int),
+        received: make(map[int]int),
     }
 }
 
@@ -17,73 +17,20 @@ func (nd *NeighborDirectory) Stats() (int, int) {
     receivedCount := 0
 
     for key := range nd.sent {
-        if nd.sent[key] {
-            sentCount++
-        }
+        sentCount += nd.sent[key]
     }
 
     for key := range nd.received {
-        if nd.received[key] {
-            receivedCount++
-        }
+        receivedCount += nd.received[key]
     }
 
     return sentCount, receivedCount
 }
 
-func (nd *NeighborDirectory) Reset() {
-    for key := range nd.sent {
-        nd.sent[key] = false
-    }
-
-    for key := range nd.received {
-        nd.received[key] = false
-    }
-}
-
-func (nd *NeighborDirectory) HasNotSentTo(key int) bool {
-    v, ok := nd.sent[key]
-    if !ok {
-        return true
-    }
-    return !v
-}
-
-func (nd *NeighborDirectory) HasAlreadyReceivedFrom(key int) bool {
-    v, ok := nd.received[key]
-    if !ok {
-        return false
-    }
-    return v
-}
-
 func (nd *NeighborDirectory) SetSent(key int) {
-    nd.sent[key] = true
+    nd.sent[key]++
 }
 
 func (nd *NeighborDirectory) SetReceived(key int) {
-    nd.received[key] = true
-}
-
-func (nd *NeighborDirectory) ResetIfNecessary(supposedLen int) {
-    sentDone := areAllValuesTrue(nd.sent, supposedLen)
-    receivedDone := areAllValuesTrue(nd.received, supposedLen)
-
-    if sentDone && receivedDone {
-        nd.Reset()
-    }
-}
-
-func areAllValuesTrue(m map[int]bool, supposedLen int) bool {
-    if len(m) == 0 || len(m) != supposedLen {
-        return false
-    }
-
-    for _, val := range m {
-        if !val {
-            return false
-        }
-    }
-
-    return true
+    nd.received[key]++
 }
