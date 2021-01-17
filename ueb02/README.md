@@ -23,9 +23,9 @@ Die Funktionsweise ist analog zur ersten Übung, nur das die Anwendungsnachricht
 
 ### Einsammeln der Ergebnisse
 
-Wie in der Übung gefordert erfolgt das Einsammeln der Ergebnisse per Double-Counting Methode. Nachdem der Koordinator die letzte Startnachricht versendet hat, widmet dieser sich dem Einsammeln der Ergebnisse. Das Einsammeln erfolgt jede Sekunde (also insgesamt mindestens zwei Sekunden). Der Koordinator erhält dabei einen neuen Nachrichten-Typ, nämlich Statusnachrichten.
+Wie in der Übung gefordert erfolgt das Einsammeln der Ergebnisse per *Double-Counting* Methode. Nachdem der Koordinator die letzte Startnachricht versendet hat, widmet dieser sich dem Einsammeln der Ergebnisse. Das Einsammeln erfolgt jede Sekunde (also insgesamt mindestens zwei Sekunden). Der Koordinator erhält dabei einen neuen Nachrichten-Typ, nämlich Statusnachrichten.
 
-Statusnachrichten enthalten den aktuellen Status eines Knotens (aktiv/passiv) sowie die Anzahl seiner gesendeten/erhaltenen Nachrichten und natürlich auch den aktuelle Stand nach aktuellem Stand. Propagiert werden Statusnachrichten entlang des Spannbaums, sodass Knoten die kein Koordinator sind Statusnachrichten weiterleiten, bis diese letztendlich beim Koordinator ankommen.
+Statusnachrichten enthalten den aktuellen Status eines Knotens (aktiv/passiv) sowie die Anzahl seiner gesendeten/erhaltenen Nachrichten und natürlich auch den aktuelle Stand nach aktuellem Stand. Propagiert werden Statusnachrichten entlang des Spannbaums, sodass Knoten, die kein Koordinator sind, Statusnachrichten weiterleiten, bis diese letztendlich beim Koordinator ankommen.
 
 Der Koordinator sammelt die Statusnachrichten ein und wertet sie gemäß der aus der Vorlesung bekannten Methode aus. Daraus entsteht das Ergebnis, falls das Double Counting erfolgreich war. Ansonsten wird von vorne gezählt.
 
@@ -41,7 +41,7 @@ Analog zu ueb01. Die `directory` und `handler` Module wurden entsprechend der ne
 
 ### Performance und Nebenläufigkeit
 
-Dieser Punkt macht sich auch in der zweiten Übung deutlich, vor allem beim Double-Counting. Hier ist es nämlich beim Anfertigen der Messungen für die zweite Aufgabe nicht einmal zu einer Neuzählung gekommen. Das liegt daran, dass die Abstimmungen in Sekundenbruchteilen stattfinden, da sie relativ einfach sind und nur zwischen zwei Nachbarn stattfinden. Da der erste Count erst nach einer Sekunde passiert, sind die Abstimmungen bis dahin immer abgeschlossen.
+Dieser Punkt macht sich auch in der zweiten Übung deutlich, vor allem beim Double-Counting. Hier ist es nämlich beim Anfertigen der Messungen für die zweite Aufgabe nicht einmal zu einer Neuzählung gekommen. Das liegt daran, dass die Abstimmungen in Sekundenbruchteilen stattfinden, da sie relativ einfach sind und jeweils nur zwischen zwei Nachbarn stattfinden. Da der erste Count erst nach einer Sekunde passiert, sind die Abstimmungen bis dahin immer abgeschlossen.
 
 ### Resilienz
 
