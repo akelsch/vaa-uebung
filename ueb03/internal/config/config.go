@@ -102,6 +102,16 @@ func (c *Config) GetRandomNeighbors(n int) []*Node {
     return neighbors
 }
 
+func (c *Config) GetRandomNode() *Node {
+    for _, randIndex := range rand.Perm(len(c.all)) {
+        node := &c.all[randIndex]
+        if node != c.Self {
+            return node
+        }
+    }
+    return nil
+}
+
 func (c *Config) FindNeighborById(id string) (int, *Node) {
     for i := range c.Neighbors {
         if c.Neighbors[i].Id == id {

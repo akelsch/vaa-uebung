@@ -6,6 +6,8 @@ import (
 )
 
 func (h *ConnectionHandler) handleStart() {
+    randomNode := h.conf.GetRandomNode()
+    log.Printf("Chose node %s\n", randomNode.Id)
 }
 
 func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {

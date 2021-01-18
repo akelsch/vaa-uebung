@@ -24,8 +24,7 @@ func main() {
 
     // Setup configuration
     conf := config.NewConfig(*file, *id)
-    conf.Params.Balance = randutil.RandomInt(0, 100_000)
-    conf.Params.Balance = conf.Params.Balance - (conf.Params.Balance % 1_000)
+    conf.Params.Balance = randutil.RoundedRandomInt(0, 100_000, 1_000)
 
     // Listen on own port from configuration
     ln, err := net.Listen("tcp", conf.Self.GetListenAddress())
