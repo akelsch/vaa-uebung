@@ -1,0 +1,15 @@
+syntax = "proto3";
+package ueb03;
+
+option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
+
+message ApplicationMessage {
+  enum Type {
+    START = 0;
+    ACK = 1;
+    RESULT = 2;
+  }
+
+  Type type = 1;
+  int32 body = 2;
+}

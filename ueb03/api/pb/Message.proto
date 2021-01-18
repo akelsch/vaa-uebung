@@ -1,0 +1,20 @@
+syntax = "proto3";
+package ueb03;
+
+option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
+
+import "ControlMessage.proto";
+import "ApplicationMessage.proto";
+import "Election.proto";
+import "Status.proto";
+
+message Message {
+  string sender = 1;
+  oneof msg {
+    ControlMessage control_message = 2;
+    ApplicationMessage application_message = 3;
+//    Rumor rumor = 4;
+    Election election = 5;
+    Status status = 6;
+  }
+}

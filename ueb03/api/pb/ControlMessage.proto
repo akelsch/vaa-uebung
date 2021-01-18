@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ueb03;
+
+option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
+
+message ControlMessage {
+  enum Command {
+    START = 0;
+    EXIT = 1;
+    EXIT_ALL = 2;
+    START_ELECTION = 4;
+    GET_STATUS = 5;
+  }
+
+  Command command = 1;
+}
