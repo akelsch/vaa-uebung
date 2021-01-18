@@ -72,17 +72,3 @@ func CreateEchoMessage(sender string, initiator string) *pb.Message {
         },
     }
 }
-
-func CreateStatusMessage(sender string, state pb.Status_State, sent int, received int, time int) *pb.Message {
-    return &pb.Message{
-        Sender: sender,
-        Msg: &pb.Message_Status{
-            Status: &pb.Status{
-                State:    state,
-                Sent:     int32(sent),
-                Received: int32(received),
-                Time:     int32(time),
-            },
-        },
-    }
-}

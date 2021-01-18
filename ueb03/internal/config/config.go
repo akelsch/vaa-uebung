@@ -13,10 +13,7 @@ type Config struct {
     Self      *Node
     Neighbors []*Node
     Params    struct {
-        T    int
-        S    int
-        P    int
-        AMax int
+        Balance int
     }
 }
 

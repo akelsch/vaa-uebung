@@ -13,16 +13,15 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
     log.Printf("Received control message: %s\n", cm.Command)
 
     switch cm.Command {
+    // TODO Automatisch: Warte eine zufällige Zeit zwischen 0 und 3 Sekunden
     case pb.ControlMessage_START:
-        h.handleStartVote()
+        h.handleStart()
     case pb.ControlMessage_EXIT:
         h.handleExit()
     case pb.ControlMessage_EXIT_ALL:
         h.handleExitAll(message.GetSender())
     case pb.ControlMessage_START_ELECTION:
         h.handleStartElection()
-    case pb.ControlMessage_GET_STATUS:
-        h.handleGetStatus()
     }
 }
 

@@ -112,29 +112,12 @@ func (h *ConnectionHandler) checkElectionVictory() {
         h.conf.RegisterAllAsNeighbors()
 
         // propagate START command to random neighbors
-        startingNodes := h.conf.GetRandomNeighbors(h.conf.Params.S)
+        startingNodes := h.conf.GetRandomNeighbors(42) // TODO
         for _, neighbor := range startingNodes {
             address := neighbor.GetDialAddress()
             message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_START)
             successMessage := fmt.Sprintf("Sent START command to node %s", neighbor.Id)
             netutil.SendMessage(address, message, successMessage)
         }
-
-        // start double count method to gather results
-        h.dir.Status.Ticker = time.NewTicker(1000 * time.Millisecond)
-        go func() {
-            for {
-                select {
-                case <-h.dir.Status.Ticker.C:
-                    log.Println("------- COUNTING RESULTS -------")
-                    for _, neighbor := range h.conf.Neighbors {
-                        address := neighbor.GetDialAddress()
-                        message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_GET_STATUS)
-                        successMessage := fmt.Sprintf("Sent GET_STATUS command to node %s", neighbor.Id)
-                        netutil.SendMessage(address, message, successMessage)
-                    }
-                }
-            }
-        }()
     }
 }

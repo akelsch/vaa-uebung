@@ -8,8 +8,7 @@ message ControlMessage {
     START = 0;
     EXIT = 1;
     EXIT_ALL = 2;
-    START_ELECTION = 4;
-    GET_STATUS = 5;
+    START_ELECTION = 3;
   }
 
   Command command = 1;

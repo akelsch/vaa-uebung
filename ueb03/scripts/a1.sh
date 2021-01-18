@@ -12,9 +12,10 @@ if ((NEIGHBOR_COUNT == 0)); then
   NEIGHBOR_COUNT=1
 fi
 
+# TODO zufälligen Graph generieren
 CMDLINE="tail -q "
 for i in $(seq 1 "$NODE_COUNT"); do
-  CMDLINE+=">(philosopher.exe -f ./configs/a2/small.csv -gv ./configs/a2/small.gv -id ${i} -m 10 -s 2 -p 2 -amax 2 2>&1) "
+  CMDLINE+=">(baccount.exe -f ./configs/config.csv -gv ./configs/topology.gv -id ${i} 2>&1) "
 done
 
 eval "$CMDLINE"
