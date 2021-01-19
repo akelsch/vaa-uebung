@@ -26,21 +26,33 @@ func (h *ConnectionHandler) handleStart() {
 
 func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
     am := message.GetApplicationMessage()
+    identifier := message.GetIdentifier()
     sender := message.GetSender()
+    receiver := message.GetReceiver()
 
-    switch am.Type {
-    case pb.ApplicationMessage_NUL:
-        log.Printf("Received application message from node %d\n", sender)
-        h.handleApplicationDefault(am, sender)
-    case pb.ApplicationMessage_REQ:
-        log.Printf("Received balance request from node %d\n", sender)
-        h.handleApplicationRequest(am, sender)
-    case pb.ApplicationMessage_RES:
-        log.Printf("Received balance response from node %d\n", sender)
-        h.handleApplicationResponse(am, sender)
-    case pb.ApplicationMessage_ACK:
-        log.Printf("Received acknowledgment from node %d\n", sender)
-        h.handleApplicationAcknowledgment()
+    if !h.dir.Flooding.IsHandled(identifier) {
+        h.dir.Flooding.MarkAsHandled(identifier)
+
+        if receiver != h.conf.Self.Id {
+            h.forwardMessage(message)
+        } else {
+            switch am.Type {
+            case pb.ApplicationMessage_NUL:
+                log.Printf("Received application message from node %d\n", sender)
+                h.handleApplicationDefault(am, sender)
+            case pb.ApplicationMessage_REQ:
+                log.Printf("Received balance request from node %d\n", sender)
+                h.handleApplicationRequest(am, sender)
+            case pb.ApplicationMessage_RES:
+                log.Printf("Received balance response from node %d\n", sender)
+                h.handleApplicationResponse(am, sender)
+            case pb.ApplicationMessage_ACK:
+                log.Printf("Received acknowledgment from node %d\n", sender)
+                h.handleApplicationAcknowledgment()
+            }
+        }
+    } else {
+        log.Printf("Message '%s' got handled already\n", identifier)
     }
 }
 
@@ -105,13 +117,26 @@ func (h *ConnectionHandler) handleApplicationAcknowledgment() {
     // TODO unlock
 }
 
+func (h *ConnectionHandler) forwardMessage(message *pb.Message) {
+    for _, neighbor := range h.conf.Neighbors {
+        address := neighbor.GetDialAddress()
+        successLog := fmt.Sprintf("Forwarded message '%s' to node %d", message.GetIdentifier(), neighbor.Id)
+        netutil.SendMessage(address, message, successLog)
+    }
+}
+
 func (h *ConnectionHandler) floodMessage(node *config.Node, message *pb.Message, successLog string) {
     if h.conf.IsNodeNeighbor(node.Id) {
         // Direct message
         address := node.GetDialAddress()
         netutil.SendMessage(address, message, successLog)
     } else {
-        // TODO Flood
-        log.Println("TODO")
+        // Flood neighbors
+        log.Printf("*** Flooding neighbors with message '%s' as node %d is not a neighbor ***\n", message.GetIdentifier(), node.Id)
+        log.Println(successLog)
+        for _, neighbor := range h.conf.Neighbors {
+            address := neighbor.GetDialAddress()
+            netutil.SendMessageSilently(address, message)
+        }
     }
 }

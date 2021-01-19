@@ -22,8 +22,15 @@ func SendMessage(address string, message *pb.Message, successLog string) bool {
     errutil.HandleError(err)
     conn.Close()
 
-    log.Println(successLog)
+    if successLog != "" {
+        log.Println(successLog)
+    }
+
     return true
+}
+
+func SendMessageSilently(address string, message *pb.Message) bool {
+    return SendMessage(address, message, "")
 }
 
 func SendMessageIgnoringErrors(address string, message *pb.Message, successLog string) {
