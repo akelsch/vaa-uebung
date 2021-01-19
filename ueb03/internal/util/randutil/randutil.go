@@ -15,7 +15,12 @@ func RandomInt(min, max int) int {
     return rand.Intn(max-min+1) + min
 }
 
-func RoundedRandomInt(min, max, accuracy int) int {
+func RoundedRandomInt(min, max, accuracy int) int64 {
     n := RandomInt(min, max)
-    return n - (n % accuracy)
+    n = n - (n % accuracy)
+    return int64(n)
+}
+
+func RoundedRandomUint(min, max, accuracy int) uint64 {
+    return uint64(RoundedRandomInt(min, max, accuracy))
 }

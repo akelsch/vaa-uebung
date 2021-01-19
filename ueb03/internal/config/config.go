@@ -14,7 +14,7 @@ type Config struct {
     Self      *Node
     Neighbors []*Node
     Params    struct {
-        Balance int
+        Balance int64
     }
 }
 

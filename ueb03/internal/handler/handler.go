@@ -15,7 +15,7 @@ type ConnectionHandler struct {
     ln   *net.Listener
     quit chan interface{}
     conf *config.Config
-    dir  *directory.MessageDirectory
+    dir  *directory.Directory
 }
 
 func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHandler {
@@ -23,7 +23,7 @@ func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHand
         ln:   ln,
         quit: make(chan interface{}),
         conf: conf,
-        dir:  directory.NewMessageDirectory(),
+        dir:  directory.NewDirectory(),
     }
 }
 

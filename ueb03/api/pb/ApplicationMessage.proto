@@ -12,6 +12,6 @@ message ApplicationMessage {
   }
 
   Type type = 1;
-  int32 balance = 2;
-  int32 percent = 3;
+  int64 balance = 2;
+  uint64 percent = 3;
 }

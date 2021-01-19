@@ -2,23 +2,23 @@ package directory
 
 import "sync"
 
-type MessageDirectory struct {
+type Directory struct {
     mu       sync.Mutex
     Flooding *FloodingDirectory
     //Election *ElectionDirectory
 }
 
-func NewMessageDirectory() *MessageDirectory {
-    return &MessageDirectory{
+func NewDirectory() *Directory {
+    return &Directory{
         Flooding: NewFloodingDirectory(),
         //Election: NewElectionDirectory(),
     }
 }
 
-func (md *MessageDirectory) Lock() {
+func (md *Directory) Lock() {
     md.mu.Lock()
 }
 
-func (md *MessageDirectory) Unlock() {
+func (md *Directory) Unlock() {
     md.mu.Unlock()
 }

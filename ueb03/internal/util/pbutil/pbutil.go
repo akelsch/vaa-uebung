@@ -1,6 +1,23 @@
 package pbutil
 
-import "github.com/akelsch/vaa/ueb03/api/pb"
+import (
+    "fmt"
+    "github.com/akelsch/vaa/ueb03/api/pb"
+)
+
+type Metadata struct {
+    identifier string
+    sender     uint64
+    receiver   uint64
+}
+
+func CreateMetadata(sender uint64, receiver uint64, seq uint64) *Metadata {
+    return &Metadata{
+        identifier: fmt.Sprintf("%d-%d", sender, seq),
+        sender:     sender,
+        receiver:   receiver,
+    }
+}
 
 func CreateControlMessage(sender uint64, command pb.ControlMessage_Command) *pb.Message {
     return &pb.Message{
@@ -13,46 +30,54 @@ func CreateControlMessage(sender uint64, command pb.ControlMessage_Command) *pb.
     }
 }
 
-func CreateApplicationMessage(sender uint64, balance, percent int) *pb.Message {
+func CreateApplicationMessage(metadata *Metadata, balance int64, percent uint64) *pb.Message {
     return &pb.Message{
-        Sender: sender,
+        Identifier: metadata.identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
-                Balance: int32(balance),
-                Percent: int32(percent),
+                Balance: balance,
+                Percent: percent,
             },
         },
     }
 }
 
-func CreateApplicationRequestMessage(sender uint64, percent int) *pb.Message {
+func CreateApplicationRequestMessage(metadata *Metadata, percent uint64) *pb.Message {
     return &pb.Message{
-        Sender: sender,
+        Identifier: metadata.identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
                 Type:    pb.ApplicationMessage_REQ,
-                Percent: int32(percent),
+                Percent: percent,
             },
         },
     }
 }
 
-func CreateApplicationResponseMessage(sender uint64, balance, percent int) *pb.Message {
+func CreateApplicationResponseMessage(metadata *Metadata, balance int64, percent uint64) *pb.Message {
     return &pb.Message{
-        Sender: sender,
+        Identifier: metadata.identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
                 Type:    pb.ApplicationMessage_RES,
-                Balance: int32(balance),
-                Percent: int32(percent),
+                Balance: balance,
+                Percent: percent,
             },
         },
     }
 }
 
-func CreateApplicationAcknowledgmentMessage(sender uint64) *pb.Message {
+func CreateApplicationAcknowledgmentMessage(metadata *Metadata) *pb.Message {
     return &pb.Message{
-        Sender: sender,
+        Identifier: metadata.identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
                 Type: pb.ApplicationMessage_ACK,
