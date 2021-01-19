@@ -109,6 +109,5 @@ package handler
 //
 //    if h.dir.Election.IsCoordinator(h.conf.Self.Id) {
 //        log.Println("------- ELECTION VICTORY -------")
-//        h.conf.RegisterAllAsNeighbors()
 //    }
 //}

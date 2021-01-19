@@ -13,7 +13,7 @@ import (
 // TODO use flooding
 
 func (h *ConnectionHandler) handleStart() {
-    _, node := h.conf.FindRandomNode()
+    node := h.conf.FindRandomNode()
 
     // Step 4
     percent := randutil.RoundedRandomInt(0, 100, 10)
@@ -61,7 +61,7 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
         log.Printf("Decreasing balance by %d percent: Old = %d, New = %d\n", p, bj, h.conf.Params.Balance)
     }
 
-    _, node := h.conf.FindById(sender)
+    node := h.conf.FindNodeById(sender)
     address := node.GetDialAddress()
     message := pbutil.CreateApplicationAcknowledgmentMessage(h.conf.Self.Id)
     successMessage := fmt.Sprintf("Sent acknowledgment to node %d", node.Id)
@@ -69,7 +69,7 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
 }
 
 func (h *ConnectionHandler) handleApplicationRequest(am *pb.ApplicationMessage, sender uint64) {
-    _, node := h.conf.FindById(sender)
+    node := h.conf.FindNodeById(sender)
     percent := int(am.GetPercent())
 
     address := node.GetDialAddress()
@@ -84,7 +84,7 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
     bj := int(am.GetBalance())
 
     // Step 5 (swapped places with 6)
-    _, node := h.conf.FindById(sender)
+    node := h.conf.FindNodeById(sender)
     address := node.GetDialAddress()
     message := pbutil.CreateApplicationMessage(h.conf.Self.Id, h.conf.Params.Balance, p)
     successMessage := fmt.Sprintf("Sent application message to node %d: B = %d, p = %d", node.Id, h.conf.Params.Balance, p)

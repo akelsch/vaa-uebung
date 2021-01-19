@@ -2,11 +2,11 @@ package config
 
 import (
     "fmt"
+    "github.com/akelsch/vaa/ueb03/internal/util/convutil"
     "github.com/akelsch/vaa/ueb03/internal/util/errutil"
     "github.com/akelsch/vaa/ueb03/internal/util/fileutil"
     "github.com/awalterschulze/gographviz"
     "math/rand"
-    "strconv"
 )
 
 type Config struct {
@@ -23,31 +23,17 @@ func NewConfig(filename string, id uint64) *Config {
 
     // all
     for _, row := range fileutil.ReadCsvRows(filename) {
-        parsedId, err := strconv.ParseUint(row[0], 10, 0)
-        errutil.HandleError(err)
         c.all = append(c.all, Node{
-            Id:   parsedId,
+            Id:   convutil.StringToUint(row[0]),
             Host: row[1],
             Port: row[2],
         })
     }
 
     // Self
-    self, err := c.find(id)
-    errutil.HandleError(err)
-    c.Self = self
+    c.Self = c.find(id)
 
     return c
-}
-
-func (c *Config) find(id uint64) (*Node, error) {
-    for i := range c.all {
-        if c.all[i].Id == id {
-            return &c.all[i], nil
-        }
-    }
-
-    return nil, fmt.Errorf("could not find configuration for entry with ID %d", id)
 }
 
 func (c *Config) ChooseNeighborsByGraph(filename string) {
@@ -58,21 +44,26 @@ func (c *Config) ChooseNeighborsByGraph(filename string) {
     err = gographviz.Analyse(graphAst, graph)
     errutil.HandleError(err)
 
+    // Neighbors
     for _, edge := range graph.Edges.Edges {
-        l, err := strconv.ParseUint(edge.Src, 10, 0)
-        errutil.HandleError(err)
-        r, err := strconv.ParseUint(edge.Dst, 10, 0)
-        errutil.HandleError(err)
+        l := convutil.StringToUint(edge.Src)
+        r := convutil.StringToUint(edge.Dst)
         if l == c.Self.Id {
-            node, err := c.find(r)
-            errutil.HandleError(err)
-            c.Neighbors = append(c.Neighbors, node)
+            c.Neighbors = append(c.Neighbors, c.find(r))
         } else if r == c.Self.Id {
-            node, err := c.find(l)
-            errutil.HandleError(err)
-            c.Neighbors = append(c.Neighbors, node)
+            c.Neighbors = append(c.Neighbors, c.find(l))
         }
     }
+}
+
+func (c *Config) find(id uint64) *Node {
+    node := c.FindNodeById(id)
+
+    if node == nil {
+        errutil.HandleError(fmt.Errorf("could not find configuration for entry with ID %d", id))
+    }
+
+    return node
 }
 
 func (c *Config) NeighborsToString() string {
@@ -89,55 +80,35 @@ func (c *Config) NeighborsToString() string {
     return output
 }
 
-func (c *Config) RegisterAllAsNeighbors() {
-    c.Neighbors = nil
+func (c *Config) FindNodeById(id uint64) *Node {
     for i := range c.all {
-        neighbor := &c.all[i]
-        if neighbor != c.Self {
-            c.Neighbors = append(c.Neighbors, neighbor)
-        }
-    }
-}
-
-func (c *Config) GetRandomNeighbors(n int) []*Node {
-    var neighbors []*Node
-    for _, randIndex := range rand.Perm(len(c.Neighbors)) {
-        neighbors = append(neighbors, c.Neighbors[randIndex])
-        if len(neighbors) >= n {
-            break
-        }
-    }
-    return neighbors
-}
-
-func (c *Config) FindNeighborById(id uint64) (int, *Node) {
-    for i := range c.Neighbors {
-        if c.Neighbors[i].Id == id {
-            return i, c.Neighbors[i]
+        node := &c.all[i]
+        if node.Id == id {
+            return node
         }
     }
 
-    return -1, nil
+    return nil
 }
 
-// TODO remove once using flooding
-func (c *Config) FindById(id uint64) (int, *Node) {
-    for i := range c.all {
-        if c.all[i].Id == id {
-            return i, &c.all[i]
-        }
-    }
-
-    return -1, nil
-}
-
-func (c *Config) FindRandomNode() (int, *Node) {
+func (c *Config) FindRandomNode() *Node {
     for _, randIndex := range rand.Perm(len(c.all)) {
         node := &c.all[randIndex]
         if node != c.Self {
-            return randIndex, node
+            return node
         }
     }
 
-    return -1, nil
+    return nil
+}
+
+func (c *Config) FindNeighborById(id uint64) *Node {
+    for i := range c.Neighbors {
+        neighbor := c.Neighbors[i]
+        if neighbor.Id == id {
+            return neighbor
+        }
+    }
+
+    return nil
 }
