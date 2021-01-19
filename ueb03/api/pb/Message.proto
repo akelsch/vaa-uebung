@@ -8,10 +8,13 @@ import "ApplicationMessage.proto";
 import "Election.proto";
 
 message Message {
-  string sender = 1;
+  string identifier = 1;
+  string sender = 2;
+  string receiver = 3;
+
   oneof msg {
-    ControlMessage control_message = 2;
-    ApplicationMessage application_message = 3;
-    Election election = 4;
+    ControlMessage control_message = 4;
+    ApplicationMessage application_message = 5;
+    Election election = 6;
   }
 }

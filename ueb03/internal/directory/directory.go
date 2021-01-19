@@ -3,15 +3,15 @@ package directory
 import "sync"
 
 type MessageDirectory struct {
-    mu        sync.Mutex
-    Neighbors *NeighborDirectory
-    Election  *ElectionDirectory
+    mu       sync.Mutex
+    Flooding *FloodingDirectory
+    Election *ElectionDirectory
 }
 
 func NewMessageDirectory() *MessageDirectory {
     return &MessageDirectory{
-        Neighbors: NewNeighborDirectory(),
-        Election:  NewElectionDirectory(),
+        Flooding: NewFloodingDirectory(),
+        Election: NewElectionDirectory(),
     }
 }
 
