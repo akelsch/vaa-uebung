@@ -8,7 +8,7 @@ import (
     "net"
 )
 
-func SendMessage(address string, message *pb.Message, successMessage string) bool {
+func SendMessage(address string, message *pb.Message, successLog string) bool {
     conn, err := net.Dial("tcp", address)
     if err != nil {
         log.Printf("Could not connect to address %s\n", address)
@@ -22,11 +22,11 @@ func SendMessage(address string, message *pb.Message, successMessage string) boo
     errutil.HandleError(err)
     conn.Close()
 
-    log.Println(successMessage)
+    log.Println(successLog)
     return true
 }
 
-func SendMessageIgnoringErrors(address string, message *pb.Message, successMessage string) {
+func SendMessageIgnoringErrors(address string, message *pb.Message, successLog string) {
     conn, err := net.Dial("tcp", address)
     if err == nil {
         bytes, err := proto.Marshal(message)
@@ -36,7 +36,7 @@ func SendMessageIgnoringErrors(address string, message *pb.Message, successMessa
         conn.Close()
 
         if err == nil {
-            log.Println(successMessage)
+            log.Println(successLog)
         }
     }
 }

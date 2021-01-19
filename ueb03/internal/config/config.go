@@ -112,3 +112,7 @@ func (c *Config) FindNeighborById(id uint64) *Node {
 
     return nil
 }
+
+func (c *Config) IsNodeNeighbor(id uint64) bool {
+    return c.FindNeighborById(id) != nil
+}

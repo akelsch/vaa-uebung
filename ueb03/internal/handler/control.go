@@ -40,8 +40,8 @@ func (h *ConnectionHandler) handleExitAll(sender uint64) {
             if neighbor.Id != sender {
                 address := neighbor.GetDialAddress()
                 message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_EXIT_ALL)
-                successMessage := fmt.Sprintf("Propagated exit to node %d", neighbor.Id)
-                netutil.SendMessageIgnoringErrors(address, message, successMessage)
+                successLog := fmt.Sprintf("Propagated exit to node %d", neighbor.Id)
+                netutil.SendMessageIgnoringErrors(address, message, successLog)
             }
         }
         (*h.ln).Close()

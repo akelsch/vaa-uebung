@@ -3,14 +3,13 @@ package handler
 import (
     "fmt"
     "github.com/akelsch/vaa/ueb03/api/pb"
+    "github.com/akelsch/vaa/ueb03/internal/config"
     "github.com/akelsch/vaa/ueb03/internal/util/netutil"
     "github.com/akelsch/vaa/ueb03/internal/util/pbutil"
     "github.com/akelsch/vaa/ueb03/internal/util/randutil"
     "log"
     "math"
 )
-
-// TODO use flooding
 
 func (h *ConnectionHandler) handleStart() {
     node := h.conf.FindRandomNode()
@@ -19,11 +18,10 @@ func (h *ConnectionHandler) handleStart() {
     percent := randutil.RoundedRandomUint(0, 100, 10)
 
     // Step 6 (swapped places with 5)
-    address := node.GetDialAddress()
-    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, 0)
+    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationRequestMessage(metadata, percent)
-    successMessage := fmt.Sprintf("Sent balance request to node %d", node.Id)
-    netutil.SendMessage(address, message, successMessage)
+    successLog := fmt.Sprintf("Sent balance request to node %d", node.Id)
+    h.floodMessage(node, message, successLog)
 }
 
 func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
@@ -63,22 +61,20 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
     }
 
     node := h.conf.FindNodeById(sender)
-    address := node.GetDialAddress()
-    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, 0)
+    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationAcknowledgmentMessage(metadata)
-    successMessage := fmt.Sprintf("Sent acknowledgment to node %d", node.Id)
-    netutil.SendMessage(address, message, successMessage)
+    successLog := fmt.Sprintf("Sent acknowledgment to node %d", node.Id)
+    h.floodMessage(node, message, successLog)
 }
 
 func (h *ConnectionHandler) handleApplicationRequest(am *pb.ApplicationMessage, sender uint64) {
     node := h.conf.FindNodeById(sender)
     percent := am.GetPercent()
 
-    address := node.GetDialAddress()
-    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, 0)
+    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationResponseMessage(metadata, h.conf.Params.Balance, percent)
-    successMessage := fmt.Sprintf("Sent balance response to node %d: B = %d", node.Id, h.conf.Params.Balance)
-    netutil.SendMessage(address, message, successMessage)
+    successLog := fmt.Sprintf("Sent balance response to node %d: B = %d", node.Id, h.conf.Params.Balance)
+    h.floodMessage(node, message, successLog)
 }
 
 func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage, sender uint64) {
@@ -88,11 +84,10 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
 
     // Step 5 (swapped places with 6)
     node := h.conf.FindNodeById(sender)
-    address := node.GetDialAddress()
-    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, 0)
+    metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationMessage(metadata, h.conf.Params.Balance, p)
-    successMessage := fmt.Sprintf("Sent application message to node %d: B = %d, p = %d", node.Id, h.conf.Params.Balance, p)
-    netutil.SendMessage(address, message, successMessage)
+    successLog := fmt.Sprintf("Sent application message to node %d: B = %d, p = %d", node.Id, h.conf.Params.Balance, p)
+    h.floodMessage(node, message, successLog)
 
     // Step 7
     if bj >= bi {
@@ -108,4 +103,15 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
 
 func (h *ConnectionHandler) handleApplicationAcknowledgment() {
     // TODO unlock
+}
+
+func (h *ConnectionHandler) floodMessage(node *config.Node, message *pb.Message, successLog string) {
+    if h.conf.IsNodeNeighbor(node.Id) {
+        // Direct message
+        address := node.GetDialAddress()
+        netutil.SendMessage(address, message, successLog)
+    } else {
+        // TODO Flood
+        log.Println("TODO")
+    }
 }
