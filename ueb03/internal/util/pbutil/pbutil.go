@@ -2,7 +2,7 @@ package pbutil
 
 import "github.com/akelsch/vaa/ueb03/api/pb"
 
-func CreateControlMessage(sender string, command pb.ControlMessage_Command) *pb.Message {
+func CreateControlMessage(sender uint64, command pb.ControlMessage_Command) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ControlMessage{
@@ -13,7 +13,7 @@ func CreateControlMessage(sender string, command pb.ControlMessage_Command) *pb.
     }
 }
 
-func CreateApplicationMessage(sender string, balance, percent int) *pb.Message {
+func CreateApplicationMessage(sender uint64, balance, percent int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
@@ -25,7 +25,7 @@ func CreateApplicationMessage(sender string, balance, percent int) *pb.Message {
     }
 }
 
-func CreateApplicationRequestMessage(sender string, percent int) *pb.Message {
+func CreateApplicationRequestMessage(sender uint64, percent int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
@@ -37,7 +37,7 @@ func CreateApplicationRequestMessage(sender string, percent int) *pb.Message {
     }
 }
 
-func CreateApplicationResponseMessage(sender string, balance, percent int) *pb.Message {
+func CreateApplicationResponseMessage(sender uint64, balance, percent int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
@@ -50,7 +50,7 @@ func CreateApplicationResponseMessage(sender string, balance, percent int) *pb.M
     }
 }
 
-func CreateApplicationAcknowledgmentMessage(sender string) *pb.Message {
+func CreateApplicationAcknowledgmentMessage(sender uint64) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
@@ -61,7 +61,7 @@ func CreateApplicationAcknowledgmentMessage(sender string) *pb.Message {
     }
 }
 
-func CreateExplorerMessage(sender string, initiator string) *pb.Message {
+func CreateExplorerMessage(sender uint64, initiator string) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_Election{
@@ -73,7 +73,7 @@ func CreateExplorerMessage(sender string, initiator string) *pb.Message {
     }
 }
 
-func CreateEchoMessage(sender string, initiator string) *pb.Message {
+func CreateEchoMessage(sender uint64, initiator string) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_Election{

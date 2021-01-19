@@ -9,8 +9,8 @@ import "Election.proto";
 
 message Message {
   string identifier = 1;
-  string sender = 2;
-  string receiver = 3;
+  uint64 sender = 2;
+  uint64 receiver = 3;
 
   oneof msg {
     ControlMessage control_message = 4;

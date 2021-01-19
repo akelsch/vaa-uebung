@@ -20,8 +20,8 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
         h.handleExit()
     case pb.ControlMessage_EXIT_ALL:
         h.handleExitAll(message.GetSender())
-    case pb.ControlMessage_START_ELECTION:
-        h.handleStartElection()
+    //case pb.ControlMessage_START_ELECTION:
+    //    h.handleStartElection()
     }
 }
 
@@ -30,7 +30,7 @@ func (h *ConnectionHandler) handleExit() {
     (*h.ln).Close()
 }
 
-func (h *ConnectionHandler) handleExitAll(sender string) {
+func (h *ConnectionHandler) handleExitAll(sender uint64) {
     select {
     case <-h.quit:
         // Already exiting, ignore
@@ -40,7 +40,7 @@ func (h *ConnectionHandler) handleExitAll(sender string) {
             if neighbor.Id != sender {
                 address := neighbor.GetDialAddress()
                 message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_EXIT_ALL)
-                successMessage := fmt.Sprintf("Propagated exit to node %s", neighbor.Id)
+                successMessage := fmt.Sprintf("Propagated exit to node %d", neighbor.Id)
                 netutil.SendMessageIgnoringErrors(address, message, successMessage)
             }
         }

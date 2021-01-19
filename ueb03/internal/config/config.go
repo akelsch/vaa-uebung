@@ -6,6 +6,7 @@ import (
     "github.com/akelsch/vaa/ueb03/internal/util/fileutil"
     "github.com/awalterschulze/gographviz"
     "math/rand"
+    "strconv"
 )
 
 type Config struct {
@@ -17,16 +18,21 @@ type Config struct {
     }
 }
 
-func NewConfig(filename string, id string) *Config {
+func NewConfig(filename string, id uint64) *Config {
     c := &Config{}
+
+    // all
     for _, row := range fileutil.ReadCsvRows(filename) {
+        parsedId, err := strconv.ParseUint(row[0], 10, 0)
+        errutil.HandleError(err)
         c.all = append(c.all, Node{
-            Id:   row[0],
+            Id:   parsedId,
             Host: row[1],
             Port: row[2],
         })
     }
 
+    // Self
     self, err := c.find(id)
     errutil.HandleError(err)
     c.Self = self
@@ -34,14 +40,14 @@ func NewConfig(filename string, id string) *Config {
     return c
 }
 
-func (c *Config) find(id string) (*Node, error) {
+func (c *Config) find(id uint64) (*Node, error) {
     for i := range c.all {
         if c.all[i].Id == id {
             return &c.all[i], nil
         }
     }
 
-    return nil, fmt.Errorf("could not find configuration for entry with ID %s", id)
+    return nil, fmt.Errorf("could not find configuration for entry with ID %d", id)
 }
 
 func (c *Config) ChooseNeighborsByGraph(filename string) {
@@ -53,8 +59,10 @@ func (c *Config) ChooseNeighborsByGraph(filename string) {
     errutil.HandleError(err)
 
     for _, edge := range graph.Edges.Edges {
-        l := edge.Src
-        r := edge.Dst
+        l, err := strconv.ParseUint(edge.Src, 10, 0)
+        errutil.HandleError(err)
+        r, err := strconv.ParseUint(edge.Dst, 10, 0)
+        errutil.HandleError(err)
         if l == c.Self.Id {
             node, err := c.find(r)
             errutil.HandleError(err)
@@ -102,7 +110,7 @@ func (c *Config) GetRandomNeighbors(n int) []*Node {
     return neighbors
 }
 
-func (c *Config) FindNeighborById(id string) (int, *Node) {
+func (c *Config) FindNeighborById(id uint64) (int, *Node) {
     for i := range c.Neighbors {
         if c.Neighbors[i].Id == id {
             return i, c.Neighbors[i]
@@ -113,7 +121,7 @@ func (c *Config) FindNeighborById(id string) (int, *Node) {
 }
 
 // TODO remove once using flooding
-func (c *Config) FindById(id string) (int, *Node) {
+func (c *Config) FindById(id uint64) (int, *Node) {
     for i := range c.all {
         if c.all[i].Id == id {
             return i, &c.all[i]

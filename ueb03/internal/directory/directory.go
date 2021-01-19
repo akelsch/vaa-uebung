@@ -5,13 +5,13 @@ import "sync"
 type MessageDirectory struct {
     mu       sync.Mutex
     Flooding *FloodingDirectory
-    Election *ElectionDirectory
+    //Election *ElectionDirectory
 }
 
 func NewMessageDirectory() *MessageDirectory {
     return &MessageDirectory{
         Flooding: NewFloodingDirectory(),
-        Election: NewElectionDirectory(),
+        //Election: NewElectionDirectory(),
     }
 }
 

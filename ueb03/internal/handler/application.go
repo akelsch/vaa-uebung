@@ -21,7 +21,7 @@ func (h *ConnectionHandler) handleStart() {
     // Step 6 (swapped places with 5)
     address := node.GetDialAddress()
     message := pbutil.CreateApplicationRequestMessage(h.conf.Self.Id, percent)
-    successMessage := fmt.Sprintf("Sent balance request to node %s", node.Id)
+    successMessage := fmt.Sprintf("Sent balance request to node %d", node.Id)
     netutil.SendMessage(address, message, successMessage)
 }
 
@@ -31,21 +31,21 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
 
     switch am.Type {
     case pb.ApplicationMessage_NUL:
-        log.Printf("Received application message from node %s\n", sender)
+        log.Printf("Received application message from node %d\n", sender)
         h.handleApplicationDefault(am, sender)
     case pb.ApplicationMessage_REQ:
-        log.Printf("Received balance request from node %s\n", sender)
+        log.Printf("Received balance request from node %d\n", sender)
         h.handleApplicationRequest(am, sender)
     case pb.ApplicationMessage_RES:
-        log.Printf("Received balance response from node %s\n", sender)
+        log.Printf("Received balance response from node %d\n", sender)
         h.handleApplicationResponse(am, sender)
     case pb.ApplicationMessage_ACK:
-        log.Printf("Received acknowledgment from node %s\n", sender)
+        log.Printf("Received acknowledgment from node %d\n", sender)
         h.handleApplicationAcknowledgment()
     }
 }
 
-func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, sender string) {
+func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, sender uint64) {
     p := int(am.GetPercent())
     bi := int(am.GetBalance())
     bj := h.conf.Params.Balance
@@ -64,21 +64,21 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
     _, node := h.conf.FindById(sender)
     address := node.GetDialAddress()
     message := pbutil.CreateApplicationAcknowledgmentMessage(h.conf.Self.Id)
-    successMessage := fmt.Sprintf("Sent acknowledgment to node %s", node.Id)
+    successMessage := fmt.Sprintf("Sent acknowledgment to node %d", node.Id)
     netutil.SendMessage(address, message, successMessage)
 }
 
-func (h *ConnectionHandler) handleApplicationRequest(am *pb.ApplicationMessage, sender string) {
+func (h *ConnectionHandler) handleApplicationRequest(am *pb.ApplicationMessage, sender uint64) {
     _, node := h.conf.FindById(sender)
     percent := int(am.GetPercent())
 
     address := node.GetDialAddress()
     message := pbutil.CreateApplicationResponseMessage(h.conf.Self.Id, h.conf.Params.Balance, percent)
-    successMessage := fmt.Sprintf("Sent balance response to node %s: B = %d", node.Id, h.conf.Params.Balance)
+    successMessage := fmt.Sprintf("Sent balance response to node %d: B = %d", node.Id, h.conf.Params.Balance)
     netutil.SendMessage(address, message, successMessage)
 }
 
-func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage, sender string) {
+func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage, sender uint64) {
     p := int(am.GetPercent())
     bi := h.conf.Params.Balance
     bj := int(am.GetBalance())
@@ -87,7 +87,7 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
     _, node := h.conf.FindById(sender)
     address := node.GetDialAddress()
     message := pbutil.CreateApplicationMessage(h.conf.Self.Id, h.conf.Params.Balance, p)
-    successMessage := fmt.Sprintf("Sent application message to node %s: B = %d, p = %d", node.Id, h.conf.Params.Balance, p)
+    successMessage := fmt.Sprintf("Sent application message to node %d: B = %d, p = %d", node.Id, h.conf.Params.Balance, p)
     netutil.SendMessage(address, message, successMessage)
 
     // Step 7

@@ -14,13 +14,13 @@ import (
 func main() {
     file := flag.String("f", "config.csv", "path to the CSV file containing the node configuration")
     gvFile := flag.String("gv", "topology.gv", "path to the Graphviz file containing the network topology")
-    id := flag.String("id", "1", "ID of this particular node")
+    id := flag.Uint64("id", 1, "ID of this particular node")
     flag.Parse()
 
     // Init rand & log
     randutil.Init(*id)
     log.SetFlags(log.Ltime | log.Lmicroseconds)
-    log.SetPrefix(fmt.Sprintf("[account-%03s] ", *id))
+    log.SetPrefix(fmt.Sprintf("[account-%03d] ", *id))
 
     // Setup configuration
     conf := config.NewConfig(*file, *id)

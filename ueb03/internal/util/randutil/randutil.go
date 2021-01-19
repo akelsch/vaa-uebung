@@ -2,13 +2,12 @@ package randutil
 
 import (
     "math/rand"
-    "strconv"
     "time"
 )
 
-func Init(id string) {
-    n, _ := strconv.Atoi(id) // circumvent same seed by accident
-    rand.Seed(time.Now().UnixNano() + int64(n))
+func Init(id uint64) {
+    // add id to circumvent same seed by accident
+    rand.Seed(time.Now().UnixNano() + int64(id))
 }
 
 // Generates a random number where min and max are inclusive.
