@@ -50,6 +50,17 @@ func CreateApplicationResponseMessage(sender string, balance, percent int) *pb.M
     }
 }
 
+func CreateApplicationAcknowledgmentMessage(sender string) *pb.Message {
+    return &pb.Message{
+        Sender: sender,
+        Msg: &pb.Message_ApplicationMessage{
+            ApplicationMessage: &pb.ApplicationMessage{
+                Type: pb.ApplicationMessage_ACK,
+            },
+        },
+    }
+}
+
 func CreateExplorerMessage(sender string, initiator string) *pb.Message {
     return &pb.Message{
         Sender: sender,
