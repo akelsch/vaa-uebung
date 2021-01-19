@@ -110,14 +110,5 @@ func (h *ConnectionHandler) checkElectionVictory() {
     if h.dir.Election.IsCoordinator(h.conf.Self.Id) {
         log.Println("------- ELECTION VICTORY -------")
         h.conf.RegisterAllAsNeighbors()
-
-        // propagate START command to random neighbors
-        startingNodes := h.conf.GetRandomNeighbors(42) // TODO
-        for _, neighbor := range startingNodes {
-            address := neighbor.GetDialAddress()
-            message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_START)
-            successMessage := fmt.Sprintf("Sent START command to node %s", neighbor.Id)
-            netutil.SendMessage(address, message, successMessage)
-        }
     }
 }

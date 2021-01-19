@@ -13,37 +13,38 @@ func CreateControlMessage(sender string, command pb.ControlMessage_Command) *pb.
     }
 }
 
-func CreateApplicationStartMessage(sender string, body int) *pb.Message {
+func CreateApplicationMessage(sender string, balance, percent int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
-                Type: pb.ApplicationMessage_START,
-                Body: int32(body),
+                Balance: int32(balance),
+                Percent: int32(percent),
             },
         },
     }
 }
 
-func CreateApplicationAckMessage(sender string, body int) *pb.Message {
+func CreateApplicationRequestMessage(sender string, percent int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
-                Type: pb.ApplicationMessage_ACK,
-                Body: int32(body),
+                Type:    pb.ApplicationMessage_REQ,
+                Percent: int32(percent),
             },
         },
     }
 }
 
-func CreateApplicationResultMessage(sender string, body int) *pb.Message {
+func CreateApplicationResponseMessage(sender string, balance, percent int) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ApplicationMessage{
             ApplicationMessage: &pb.ApplicationMessage{
-                Type: pb.ApplicationMessage_RESULT,
-                Body: int32(body),
+                Type:    pb.ApplicationMessage_RES,
+                Balance: int32(balance),
+                Percent: int32(percent),
             },
         },
     }

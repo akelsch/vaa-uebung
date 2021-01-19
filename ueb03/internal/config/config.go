@@ -102,20 +102,32 @@ func (c *Config) GetRandomNeighbors(n int) []*Node {
     return neighbors
 }
 
-func (c *Config) GetRandomNode() *Node {
-    for _, randIndex := range rand.Perm(len(c.all)) {
-        node := &c.all[randIndex]
-        if node != c.Self {
-            return node
-        }
-    }
-    return nil
-}
-
 func (c *Config) FindNeighborById(id string) (int, *Node) {
     for i := range c.Neighbors {
         if c.Neighbors[i].Id == id {
             return i, c.Neighbors[i]
+        }
+    }
+
+    return -1, nil
+}
+
+// TODO remove once using flooding
+func (c *Config) FindById(id string) (int, *Node) {
+    for i := range c.all {
+        if c.all[i].Id == id {
+            return i, &c.all[i]
+        }
+    }
+
+    return -1, nil
+}
+
+func (c *Config) FindRandomNode() (int, *Node) {
+    for _, randIndex := range rand.Perm(len(c.all)) {
+        node := &c.all[randIndex]
+        if node != c.Self {
+            return randIndex, node
         }
     }
 

@@ -5,11 +5,13 @@ option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
 
 message ApplicationMessage {
   enum Type {
-    START = 0;
-    ACK = 1;
-    RESULT = 2;
+    NUL = 0;
+    REQ = 1;
+    RES = 2;
+    ACK = 3;
   }
 
   Type type = 1;
-  int32 body = 2;
+  int32 balance = 2;
+  int32 percent = 3;
 }
