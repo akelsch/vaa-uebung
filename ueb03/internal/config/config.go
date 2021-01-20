@@ -116,3 +116,7 @@ func (c *Config) FindNeighborById(id uint64) *Node {
 func (c *Config) IsNodeNeighbor(id uint64) bool {
     return c.FindNeighborById(id) != nil
 }
+
+func (c *Config) GetAllNeighborsLength() int {
+    return len(c.all) -1
+}

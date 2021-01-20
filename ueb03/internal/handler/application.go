@@ -11,7 +11,7 @@ import (
     "math"
 )
 
-func (h *ConnectionHandler) handleStart() {
+func (h *ConnectionHandler) handleStart2() { // TODO
     node := h.conf.FindRandomNode()
 
     // Step 4

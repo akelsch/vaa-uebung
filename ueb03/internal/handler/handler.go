@@ -60,6 +60,8 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
         h.handleControlMessage(message)
     case *pb.Message_ApplicationMessage:
         h.handleApplicationMessage(message)
+    case *pb.Message_MutexMessage:
+        h.handleMutexMessage(message)
     //case *pb.Message_Election:
     //    h.handleElectionMessage(message)
     }

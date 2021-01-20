@@ -1,23 +1,8 @@
 package pbutil
 
 import (
-    "fmt"
     "github.com/akelsch/vaa/ueb03/api/pb"
 )
-
-type Metadata struct {
-    identifier string
-    sender     uint64
-    receiver   uint64
-}
-
-func CreateMetadata(sender uint64, receiver uint64, seq uint64) *Metadata {
-    return &Metadata{
-        identifier: fmt.Sprintf("%d-%d", sender, seq),
-        sender:     sender,
-        receiver:   receiver,
-    }
-}
 
 func CreateControlMessage(sender uint64, command pb.ControlMessage_Command) *pb.Message {
     return &pb.Message{
@@ -86,11 +71,39 @@ func CreateApplicationAcknowledgmentMessage(metadata *Metadata) *pb.Message {
     }
 }
 
+func CreateMutexRequestMessage(metadata *Metadata, resource uint64, timestamp uint64) *pb.Message {
+    return &pb.Message{
+        Identifier: metadata.identifier,
+        Sender:     metadata.sender,
+        // Broadcast -> no receiver necessary
+        Msg: &pb.Message_MutexMessage{
+            MutexMessage: &pb.MutexMessage{
+                Type:      pb.MutexMessage_REQ,
+                Resource:  resource,
+                Timestamp: timestamp,
+            },
+        },
+    }
+}
+
+func CreateMutexResponseMessage(metadata *Metadata) *pb.Message {
+    return &pb.Message{
+        Identifier: metadata.identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
+        Msg: &pb.Message_MutexMessage{
+            MutexMessage: &pb.MutexMessage{
+                Type: pb.MutexMessage_RES,
+            },
+        },
+    }
+}
+
 func CreateExplorerMessage(sender uint64, initiator string) *pb.Message {
     return &pb.Message{
         Sender: sender,
-        Msg: &pb.Message_Election{
-            Election: &pb.Election{
+        Msg: &pb.Message_ElectionMessage{
+            ElectionMessage: &pb.Election{
                 Type:      pb.Election_EXPLORER,
                 Initiator: initiator,
             },
@@ -101,8 +114,8 @@ func CreateExplorerMessage(sender uint64, initiator string) *pb.Message {
 func CreateEchoMessage(sender uint64, initiator string) *pb.Message {
     return &pb.Message{
         Sender: sender,
-        Msg: &pb.Message_Election{
-            Election: &pb.Election{
+        Msg: &pb.Message_ElectionMessage{
+            ElectionMessage: &pb.Election{
                 Type:      pb.Election_ECHO,
                 Initiator: initiator,
             },

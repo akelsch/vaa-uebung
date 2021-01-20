@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ueb03;
+
+option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
+
+message MutexMessage {
+  enum Type {
+    REQ = 0;
+    RES = 1;
+  }
+
+  Type type = 1;
+  uint64 resource = 2;
+  // own id -> Message.sender
+  uint64 timestamp = 3;
+}
