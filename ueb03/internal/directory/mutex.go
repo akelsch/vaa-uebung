@@ -9,12 +9,14 @@ import (
 type MutexDirectory struct {
     lc *collection.LamportClock
     pq *collection.PriorityQueue
+    ok map[uint64]bool
 }
 
 func NewMutexDirectory() *MutexDirectory {
     return &MutexDirectory{
         lc: &collection.LamportClock{},
         pq: &collection.PriorityQueue{},
+        ok: make(map[uint64]bool),
     }
 }
 
@@ -36,4 +38,19 @@ func (md *MutexDirectory) IsUsingResource(resource uint64) bool {
 
 func (md *MutexDirectory) QueueLockRequest(resource uint64, timestamp uint64) {
     heap.Push(md.pq, md.pq.NewItem(resource, timestamp))
+}
+
+func (md *MutexDirectory) RegisterOk(node uint64) {
+    md.ok[node] = true
+}
+
+func (md *MutexDirectory) CheckIfAllOk(expected int) bool {
+    count := 0
+    for _, b := range md.ok {
+        if b {
+            count++
+        }
+    }
+
+    return count == expected
 }
