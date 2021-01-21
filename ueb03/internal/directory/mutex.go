@@ -63,3 +63,7 @@ func (md *MutexDirectory) CheckIfAllOk(expected int) bool {
 
     return count == expected
 }
+
+func (md *MutexDirectory) ResetOk() {
+    md.ok = make(map[uint64]bool)
+}
