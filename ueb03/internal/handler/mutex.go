@@ -17,7 +17,7 @@ func (h *ConnectionHandler) handleStart() {
 
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
     message := pbutil.CreateMutexRequestMessage(metadata, node.Id, h.dir.Mutex.GetTimestamp())
-    h.dir.Flooding.MarkAsHandled(metadata.GetIdentifier())
+    h.dir.Flooding.MarkAsHandled(metadata.Identifier)
 
     log.Printf("Broadcasting mutex request '%s' with resource = %d, timestamp = %d\n",
         message.GetIdentifier(), node.Id, h.dir.Mutex.GetTimestamp())
@@ -46,18 +46,11 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
             // Ricart-Agrawala
             if !h.dir.Mutex.IsUsingResource(resource) || h.dir.Mutex.GetTimestamp() >= timestamp {
                 // send ok
-                metadata := pbutil.CreateMetadata(h.conf.Self.Id, sender, h.dir.Flooding.NextSequence())
-                message := pbutil.CreateMutexResponseMessage(metadata, resource)
-                h.dir.Flooding.MarkAsHandled(metadata.GetIdentifier())
-
-                node := h.conf.FindNodeById(sender)
-                successLog := fmt.Sprintf("Sent mutex response to node %d", node.Id)
-                h.unicastMessage(node, message, successLog)
-
+                h.sendMutexResponse(sender, resource)
                 h.dir.Mutex.UpdateTimestamp(timestamp)
             } else {
                 // queue
-                h.dir.Mutex.QueueLockRequest(resource, timestamp)
+                h.dir.Mutex.PushLockRequest(sender, resource, timestamp)
             }
         case pb.MutexMessage_RES:
             if receiver != h.conf.Self.Id {
@@ -74,4 +67,14 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
     } else {
         //log.Printf("Mutex message '%s' got handled already\n", identifier)
     }
+}
+
+func (h *ConnectionHandler) sendMutexResponse(receiver uint64, resource uint64) {
+    metadata := pbutil.CreateMetadata(h.conf.Self.Id, receiver, h.dir.Flooding.NextSequence())
+    message := pbutil.CreateMutexResponseMessage(metadata, resource)
+    h.dir.Flooding.MarkAsHandled(metadata.Identifier)
+
+    node := h.conf.FindNodeById(receiver)
+    successLog := fmt.Sprintf("Sent mutex response to node %d", node.Id)
+    h.unicastMessage(node, message, successLog)
 }

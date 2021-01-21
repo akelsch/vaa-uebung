@@ -33,11 +33,20 @@ func (md *MutexDirectory) UpdateTimestamp(timestamp uint64) {
 }
 
 func (md *MutexDirectory) IsUsingResource(resource uint64) bool {
-    return md.pq.ContainsValue(resource)
+    return md.pq.ContainsResource(resource)
 }
 
-func (md *MutexDirectory) QueueLockRequest(resource uint64, timestamp uint64) {
-    heap.Push(md.pq, md.pq.NewItem(resource, timestamp))
+func (md *MutexDirectory) PushLockRequest(sender uint64, resource uint64, timestamp uint64) {
+    heap.Push(md.pq, md.pq.NewItem(sender, resource, timestamp))
+}
+
+func (md *MutexDirectory) PopLockRequest() *collection.Item {
+    if md.pq.HasNext() {
+        item := heap.Pop(md.pq).(*collection.Item)
+        return item
+    }
+
+    return nil
 }
 
 func (md *MutexDirectory) RegisterOk(node uint64) {

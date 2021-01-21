@@ -2,11 +2,12 @@ package collection
 
 // Original source: https://golang.org/pkg/container/heap/
 
-// An Item is something we manage in a priority queue.
+// An Item is something we manage in a priority queue (lock request).
 type Item struct {
-    value    uint64 // The value of the item (node id).
-    priority uint64 // The priority of the item in the queue (lamport clock timestamp).
-    index    int    // The index of the item in the heap.
+    Sender   uint64 // sender id of the lock request
+    Resource uint64 // resource id of the lock request
+    priority uint64 // priority of the item in the queue (lamport clock timestamp)
+    index    int    // index of the item in the heap (maintained by heap.Interface methods)
 }
 
 // A PriorityQueue implements heap.Interface and holds Items.
@@ -44,9 +45,17 @@ func (pq *PriorityQueue) Pop() interface{} {
     return item
 }
 
-func (pq *PriorityQueue) ContainsValue(v uint64) bool {
+func (pq *PriorityQueue) NewItem(sender uint64, resource uint64, priority uint64) *Item {
+    return &Item{
+        Sender:   sender,
+        Resource: resource,
+        priority: priority,
+    }
+}
+
+func (pq *PriorityQueue) ContainsResource(resource uint64) bool {
     for _, item := range *pq {
-        if item.value == v {
+        if item.Resource == resource {
             return true
         }
     }
@@ -54,9 +63,6 @@ func (pq *PriorityQueue) ContainsValue(v uint64) bool {
     return false
 }
 
-func (pq *PriorityQueue) NewItem(value uint64, priority uint64) *Item {
-    return &Item{
-        value: value,
-        priority: priority,
-    }
+func (pq *PriorityQueue) HasNext() bool {
+    return pq.Len() > 0
 }

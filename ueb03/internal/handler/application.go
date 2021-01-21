@@ -112,6 +112,11 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
 }
 
 func (h *ConnectionHandler) handleApplicationAcknowledgment() {
-    // TODO Step 10
     log.Println("---- LOCK END ---")
+    // Step 10
+    item := h.dir.Mutex.PopLockRequest()
+    for item != nil {
+        h.sendMutexResponse(item.Sender, item.Resource)
+        item = h.dir.Mutex.PopLockRequest()
+    }
 }

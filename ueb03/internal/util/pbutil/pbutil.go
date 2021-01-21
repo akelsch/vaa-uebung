@@ -17,7 +17,7 @@ func CreateControlMessage(sender uint64, command pb.ControlMessage_Command) *pb.
 
 func CreateApplicationMessage(metadata *Metadata, balance int64, percent uint64) *pb.Message {
     return &pb.Message{
-        Identifier: metadata.identifier,
+        Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
@@ -31,7 +31,7 @@ func CreateApplicationMessage(metadata *Metadata, balance int64, percent uint64)
 
 func CreateApplicationRequestMessage(metadata *Metadata, percent uint64) *pb.Message {
     return &pb.Message{
-        Identifier: metadata.identifier,
+        Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
@@ -45,7 +45,7 @@ func CreateApplicationRequestMessage(metadata *Metadata, percent uint64) *pb.Mes
 
 func CreateApplicationResponseMessage(metadata *Metadata, balance int64, percent uint64) *pb.Message {
     return &pb.Message{
-        Identifier: metadata.identifier,
+        Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
@@ -60,7 +60,7 @@ func CreateApplicationResponseMessage(metadata *Metadata, balance int64, percent
 
 func CreateApplicationAcknowledgmentMessage(metadata *Metadata) *pb.Message {
     return &pb.Message{
-        Identifier: metadata.identifier,
+        Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_ApplicationMessage{
@@ -73,7 +73,7 @@ func CreateApplicationAcknowledgmentMessage(metadata *Metadata) *pb.Message {
 
 func CreateMutexRequestMessage(metadata *Metadata, resource uint64, timestamp uint64) *pb.Message {
     return &pb.Message{
-        Identifier: metadata.identifier,
+        Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         // Broadcast -> no receiver necessary
         Msg: &pb.Message_MutexMessage{
@@ -88,7 +88,7 @@ func CreateMutexRequestMessage(metadata *Metadata, resource uint64, timestamp ui
 
 func CreateMutexResponseMessage(metadata *Metadata, resource uint64) *pb.Message {
     return &pb.Message{
-        Identifier: metadata.identifier,
+        Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_MutexMessage{
