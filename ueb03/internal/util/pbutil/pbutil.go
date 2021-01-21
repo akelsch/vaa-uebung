@@ -86,14 +86,15 @@ func CreateMutexRequestMessage(metadata *Metadata, resource uint64, timestamp ui
     }
 }
 
-func CreateMutexResponseMessage(metadata *Metadata) *pb.Message {
+func CreateMutexResponseMessage(metadata *Metadata, resource uint64) *pb.Message {
     return &pb.Message{
         Identifier: metadata.identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_MutexMessage{
             MutexMessage: &pb.MutexMessage{
-                Type: pb.MutexMessage_RES,
+                Type:     pb.MutexMessage_RES,
+                Resource: resource,
             },
         },
     }

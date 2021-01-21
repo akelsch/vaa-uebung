@@ -3,25 +3,22 @@ package handler
 import (
     "fmt"
     "github.com/akelsch/vaa/ueb03/api/pb"
-    "github.com/akelsch/vaa/ueb03/internal/config"
-    "github.com/akelsch/vaa/ueb03/internal/util/netutil"
     "github.com/akelsch/vaa/ueb03/internal/util/pbutil"
     "github.com/akelsch/vaa/ueb03/internal/util/randutil"
     "log"
     "math"
 )
 
-func (h *ConnectionHandler) handleStart2() { // TODO
-    node := h.conf.FindRandomNode()
-
+func (h *ConnectionHandler) startApplicationSteps(resource uint64) {
     // Step 4
     percent := randutil.RoundedRandomUint(0, 100, 10)
 
-    // Step 6 (swapped places with 5)
+    // Step 5
+    node := h.conf.FindNodeById(resource)
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationRequestMessage(metadata, percent)
     successLog := fmt.Sprintf("Sent balance request to node %d", node.Id)
-    h.floodMessage(node, message, successLog)
+    h.unicastMessage(node, message, successLog)
 }
 
 func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
@@ -52,7 +49,7 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
             }
         }
     } else {
-        log.Printf("Message '%s' got handled already\n", identifier)
+        //log.Printf("Message '%s' got handled already\n", identifier)
     }
 }
 
@@ -72,11 +69,12 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
         log.Printf("Decreasing balance by %d percent: Old = %d, New = %d\n", p, bj, h.conf.Params.Balance)
     }
 
+    // Step 9
     node := h.conf.FindNodeById(sender)
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationAcknowledgmentMessage(metadata)
     successLog := fmt.Sprintf("Sent acknowledgment to node %d", node.Id)
-    h.floodMessage(node, message, successLog)
+    h.unicastMessage(node, message, successLog)
 }
 
 func (h *ConnectionHandler) handleApplicationRequest(am *pb.ApplicationMessage, sender uint64) {
@@ -86,7 +84,7 @@ func (h *ConnectionHandler) handleApplicationRequest(am *pb.ApplicationMessage, 
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationResponseMessage(metadata, h.conf.Params.Balance, percent)
     successLog := fmt.Sprintf("Sent balance response to node %d: B = %d", node.Id, h.conf.Params.Balance)
-    h.floodMessage(node, message, successLog)
+    h.unicastMessage(node, message, successLog)
 }
 
 func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage, sender uint64) {
@@ -94,12 +92,12 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
     bi := h.conf.Params.Balance
     bj := am.GetBalance()
 
-    // Step 5 (swapped places with 6)
+    // Step 6
     node := h.conf.FindNodeById(sender)
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, node.Id, h.dir.Flooding.NextSequence())
     message := pbutil.CreateApplicationMessage(metadata, h.conf.Params.Balance, p)
     successLog := fmt.Sprintf("Sent application message to node %d: B = %d, p = %d", node.Id, h.conf.Params.Balance, p)
-    h.floodMessage(node, message, successLog)
+    h.unicastMessage(node, message, successLog)
 
     // Step 7
     if bj >= bi {
@@ -114,29 +112,6 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
 }
 
 func (h *ConnectionHandler) handleApplicationAcknowledgment() {
-    // TODO unlock
-}
-
-func (h *ConnectionHandler) forwardMessage(message *pb.Message) {
-    for _, neighbor := range h.conf.Neighbors {
-        address := neighbor.GetDialAddress()
-        successLog := fmt.Sprintf("Forwarded message '%s' to node %d", message.GetIdentifier(), neighbor.Id)
-        netutil.SendMessage(address, message, successLog)
-    }
-}
-
-func (h *ConnectionHandler) floodMessage(node *config.Node, message *pb.Message, successLog string) {
-    if h.conf.IsNodeNeighbor(node.Id) {
-        // Direct message
-        address := node.GetDialAddress()
-        netutil.SendMessage(address, message, successLog)
-    } else {
-        // Flood neighbors
-        log.Printf("*** Flooding neighbors with message '%s' as node %d is not a neighbor ***\n", message.GetIdentifier(), node.Id)
-        log.Println(successLog)
-        for _, neighbor := range h.conf.Neighbors {
-            address := neighbor.GetDialAddress()
-            netutil.SendMessageSilently(address, message)
-        }
-    }
+    // TODO Step 10
+    log.Println("---- LOCK END ---")
 }
