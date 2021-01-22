@@ -46,8 +46,8 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
         case pb.MutexMessage_REQ:
             h.forwardMessage(message)
 
-            // Ricart-Agrawala
-            if !h.dir.Mutex.IsInterestedInResource(resource) || timestamp < h.dir.Mutex.GetTimestamp() {
+            if !h.dir.Mutex.IsInterestedInResource(resource) ||
+                h.dir.Mutex.HasLowerPriority(timestamp, sender, h.conf.Self.Id) {
                 // send ok
                 h.sendMutexResponse(sender, resource)
             } else {

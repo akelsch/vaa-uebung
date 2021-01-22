@@ -1,7 +1,6 @@
 package handler
 
 import (
-    "fmt"
     "github.com/akelsch/vaa/ueb03/api/pb"
     "github.com/akelsch/vaa/ueb03/internal/config"
     "github.com/akelsch/vaa/ueb03/internal/util/netutil"
@@ -11,8 +10,8 @@ import (
 func (h *ConnectionHandler) forwardMessage(message *pb.Message) {
     for _, neighbor := range h.conf.Neighbors {
         address := neighbor.GetDialAddress()
-        successLog := fmt.Sprintf("Forwarded message '%s' to node %d", message.GetIdentifier(), neighbor.Id)
-        netutil.SendMessage(address, message, successLog)
+        //successLog := fmt.Sprintf("Forwarded message '%s' to node %d", message.GetIdentifier(), neighbor.Id)
+        netutil.SendMessageSilently(address, message)
     }
 }
 

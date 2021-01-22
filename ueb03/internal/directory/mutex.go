@@ -76,3 +76,15 @@ func (md *MutexDirectory) CheckIfAllOk(expected int) bool {
 func (md *MutexDirectory) ResetOk() {
     md.ok = make(map[uint64]bool)
 }
+
+func (md *MutexDirectory) HasLowerPriority(otherTimestamp uint64, otherId uint64, ownId uint64) bool {
+    ownTimestamp := md.GetTimestamp()
+
+    // handle concurrent events so the queue does not break
+    if otherTimestamp == ownTimestamp {
+        // let the node with the smaller id win
+        return otherId < ownId
+    }
+
+    return otherTimestamp < ownTimestamp
+}
