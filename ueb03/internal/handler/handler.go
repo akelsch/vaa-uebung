@@ -5,10 +5,12 @@ import (
     "github.com/akelsch/vaa/ueb03/internal/config"
     "github.com/akelsch/vaa/ueb03/internal/directory"
     "github.com/akelsch/vaa/ueb03/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb03/internal/util/randutil"
     "google.golang.org/protobuf/proto"
     "io"
     "log"
     "net"
+    "time"
 )
 
 type ConnectionHandler struct {
@@ -65,4 +67,10 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
     //case *pb.Message_Election:
     //    h.handleElectionMessage(message)
     }
+}
+
+func (h *ConnectionHandler) StartFirstStep() {
+    // Step 1
+    seconds := randutil.RandomInt(0, 3)
+    time.AfterFunc(time.Duration(seconds)*time.Second, h.handleStart)
 }

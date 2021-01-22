@@ -7,9 +7,10 @@ import (
 
 // Used for Ricart-Agrawala algorithm
 type MutexDirectory struct {
-    lc *collection.LamportClock
-    pq *collection.PriorityQueue
-    ok map[uint64]bool
+    lc   *collection.LamportClock
+    pq   *collection.PriorityQueue
+    ok   map[uint64]bool
+    curr uint64
 }
 
 func NewMutexDirectory() *MutexDirectory {
@@ -32,8 +33,16 @@ func (md *MutexDirectory) UpdateTimestamp(timestamp uint64) {
     md.lc.Witness(collection.LamportTime(timestamp))
 }
 
-func (md *MutexDirectory) IsUsingResource(resource uint64) bool {
-    return md.pq.ContainsResource(resource)
+func (md *MutexDirectory) RegisterInterestInResource(resource uint64) {
+    md.curr = resource
+}
+
+func (md *MutexDirectory) ResetInterestInResource() {
+    md.curr = 0
+}
+
+func (md *MutexDirectory) IsInterestedInResource(resource uint64) bool {
+    return md.pq.ContainsResource(resource) || md.curr == resource
 }
 
 func (md *MutexDirectory) PushLockRequest(sender uint64, resource uint64, timestamp uint64) {

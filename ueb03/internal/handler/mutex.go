@@ -11,6 +11,7 @@ import (
 func (h *ConnectionHandler) handleStart() {
     // Step 2
     node := h.conf.FindRandomNode()
+    h.dir.Mutex.RegisterInterestInResource(node.Id)
 
     // Step 3a - Request Critical Section
     h.dir.Mutex.IncrementTimestampBy(h.conf.GetAllNeighborsLength())
@@ -35,6 +36,8 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
     resource := mm.GetResource()
     timestamp := mm.GetTimestamp()
 
+    h.dir.Lock()
+    defer h.dir.Unlock()
     if !h.dir.Flooding.IsHandled(identifier) {
         h.dir.Flooding.MarkAsHandled(identifier)
 
@@ -44,14 +47,15 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
             h.forwardMessage(message)
 
             // Ricart-Agrawala
-            if !h.dir.Mutex.IsUsingResource(resource) || h.dir.Mutex.GetTimestamp() >= timestamp {
+            if !h.dir.Mutex.IsInterestedInResource(resource) || timestamp < h.dir.Mutex.GetTimestamp() {
                 // send ok
                 h.sendMutexResponse(sender, resource)
-                h.dir.Mutex.UpdateTimestamp(timestamp)
             } else {
                 // queue
                 h.dir.Mutex.PushLockRequest(sender, resource, timestamp)
             }
+
+            h.dir.Mutex.UpdateTimestamp(timestamp)
         case pb.MutexMessage_RES:
             if receiver != h.conf.Self.Id {
                 h.forwardMessage(message)
@@ -59,7 +63,7 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
                 log.Printf("Received mutex response from node %d\n", sender)
                 h.dir.Mutex.RegisterOk(sender)
                 if h.dir.Mutex.CheckIfAllOk(h.conf.GetAllNeighborsLength()) {
-                    log.Println("---- LOCK START ---")
+                    log.Printf("--- LOCKING RESOURCE %d ---\n", resource)
                     h.startApplicationSteps(resource)
                 }
             }

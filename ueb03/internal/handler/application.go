@@ -27,6 +27,8 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
     sender := message.GetSender()
     receiver := message.GetReceiver()
 
+    h.dir.Lock()
+    defer h.dir.Unlock()
     if !h.dir.Flooding.IsHandled(identifier) {
         h.dir.Flooding.MarkAsHandled(identifier)
 
@@ -45,7 +47,7 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
                 h.handleApplicationResponse(am, sender)
             case pb.ApplicationMessage_ACK:
                 log.Printf("Received acknowledgment from node %d\n", sender)
-                h.handleApplicationAcknowledgment()
+                h.handleApplicationAcknowledgment(sender)
             }
         }
     } else {
@@ -62,11 +64,11 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
     if bi >= bj {
         plus := int64(math.Round(float64(bi) * (float64(p) / 100)))
         h.conf.Params.Balance = bj + plus
-        log.Printf("Increasing balance by %d: Old = %d, New = %d\n", plus, bj, h.conf.Params.Balance)
+        log.Printf("Increasing balance by %d: Old = %d, New = %d (8A)\n", plus, bj, h.conf.Params.Balance)
     } else {
-        minus := 1 - (float64(p) / 100)
-        h.conf.Params.Balance = int64(math.Round(float64(bj) * minus))
-        log.Printf("Decreasing balance by %d percent: Old = %d, New = %d\n", p, bj, h.conf.Params.Balance)
+        minus := int64(math.Round(float64(bj) * (float64(p) / 100)))
+        h.conf.Params.Balance = bj - minus
+        log.Printf("Decreasing balance by %d: Old = %d, New = %d (8B)\n", minus, bj, h.conf.Params.Balance)
     }
 
     // Step 9
@@ -103,21 +105,26 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
     if bj >= bi {
         plus := int64(math.Round(float64(bj) * (float64(p) / 100)))
         h.conf.Params.Balance = bi + plus
-        log.Printf("Increasing balance by %d: Old = %d, New = %d\n", plus, bi, h.conf.Params.Balance)
+        log.Printf("Increasing balance by %d: Old = %d, New = %d (7A)\n", plus, bi, h.conf.Params.Balance)
     } else {
-        minus := 1 - (float64(p) / 100)
-        h.conf.Params.Balance = int64(math.Round(float64(bi) * minus))
-        log.Printf("Decreasing balance by %d percent: Old = %d, New = %d\n", p, bi, h.conf.Params.Balance)
+        minus := int64(math.Round(float64(bi) * (float64(p) / 100)))
+        h.conf.Params.Balance = bi - minus
+        log.Printf("Decreasing balance by %d: Old = %d, New = %d (7B)\n", minus, bi, h.conf.Params.Balance)
     }
 }
 
-func (h *ConnectionHandler) handleApplicationAcknowledgment() {
-    log.Println("---- LOCK END ---")
-    // Step 10
+func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
+    log.Printf("--- UNLOCKING RESOURCE %d ---\n", sender)
+    h.dir.Mutex.ResetInterestInResource()
     h.dir.Mutex.ResetOk()
+
+    // Step 10
     item := h.dir.Mutex.PopLockRequest()
     for item != nil {
         h.sendMutexResponse(item.Sender, item.Resource)
         item = h.dir.Mutex.PopLockRequest()
     }
+
+    // Step 11
+    h.StartFirstStep()
 }
