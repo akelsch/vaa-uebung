@@ -115,8 +115,6 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
 
 func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
     log.Printf("--- UNLOCKING RESOURCE %d ---\n", sender)
-    h.dir.Mutex.ResetInterestInResource()
-    h.dir.Mutex.ResetOk()
 
     // Step 10
     item := h.dir.Mutex.PopLockRequest()
@@ -124,6 +122,9 @@ func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
         h.sendMutexResponse(item.Sender, item.Resource)
         item = h.dir.Mutex.PopLockRequest()
     }
+
+    h.dir.Mutex.ResetCurrentResource()
+    h.dir.Mutex.ResetResponses()
 
     // Step 11
     h.StartFirstStep()

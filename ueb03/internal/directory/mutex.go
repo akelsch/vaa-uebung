@@ -7,17 +7,17 @@ import (
 
 // Used for Ricart-Agrawala algorithm
 type MutexDirectory struct {
-    lc   *collection.LamportClock
-    pq   *collection.PriorityQueue
-    ok   map[uint64]bool
-    curr uint64
+    lc  *collection.LamportClock
+    pq  *collection.PriorityQueue
+    res map[uint64]bool
+    cur uint64
 }
 
 func NewMutexDirectory() *MutexDirectory {
     return &MutexDirectory{
-        lc: &collection.LamportClock{},
-        pq: &collection.PriorityQueue{},
-        ok: make(map[uint64]bool),
+        lc:  &collection.LamportClock{},
+        pq:  &collection.PriorityQueue{},
+        res: make(map[uint64]bool),
     }
 }
 
@@ -33,16 +33,16 @@ func (md *MutexDirectory) UpdateTimestamp(timestamp uint64) {
     md.lc.Witness(collection.LamportTime(timestamp))
 }
 
-func (md *MutexDirectory) RegisterInterestInResource(resource uint64) {
-    md.curr = resource
+func (md *MutexDirectory) RegisterCurrentResource(resource uint64) {
+    md.cur = resource
 }
 
-func (md *MutexDirectory) ResetInterestInResource() {
-    md.curr = 0
+func (md *MutexDirectory) ResetCurrentResource() {
+    md.cur = 0
 }
 
 func (md *MutexDirectory) IsInterestedInResource(resource uint64) bool {
-    return md.pq.ContainsResource(resource) || md.curr == resource
+    return resource == md.cur || md.pq.ContainsResource(resource)
 }
 
 func (md *MutexDirectory) PushLockRequest(sender uint64, resource uint64, timestamp uint64) {
@@ -58,23 +58,23 @@ func (md *MutexDirectory) PopLockRequest() *collection.Item {
     return nil
 }
 
-func (md *MutexDirectory) RegisterOk(node uint64) {
-    md.ok[node] = true
+func (md *MutexDirectory) RegisterResponse(node uint64) {
+    md.res[node] = true
 }
 
-func (md *MutexDirectory) CheckIfAllOk(expected int) bool {
+func (md *MutexDirectory) ResetResponses() {
+    md.res = make(map[uint64]bool)
+}
+
+func (md *MutexDirectory) CheckResponseCount(expected int) bool {
     count := 0
-    for _, b := range md.ok {
+    for _, b := range md.res {
         if b {
             count++
         }
     }
 
     return count == expected
-}
-
-func (md *MutexDirectory) ResetOk() {
-    md.ok = make(map[uint64]bool)
 }
 
 func (md *MutexDirectory) HasLowerPriority(otherTimestamp uint64, otherId uint64, ownId uint64) bool {
