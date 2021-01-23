@@ -14,7 +14,7 @@ func (h *ConnectionHandler) handleStart() {
 
     h.dir.Lock()
     defer h.dir.Unlock()
-    h.dir.Mutex.RegisterCurrentResource(node.Id)
+    h.dir.Mutex.RegisterWant()
 
     // Step 3a - Request Critical Section
     h.dir.Mutex.IncrementTimestampBy(h.conf.GetAllNeighborsLength())
@@ -50,18 +50,12 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
             log.Printf("Received mutex request from node %d\n", sender)
             h.forwardMessage(message)
 
-            if !h.dir.Mutex.IsInterestedIn(resource, h.conf.Self.Id) {
-                // send ok
-                h.sendMutexResponse(sender, resource)
-            } else if h.dir.Mutex.IsUsing(resource, h.conf.Self.Id, sender) {
+            if h.dir.Mutex.NeedsToQueue(timestamp, resource, h.conf.Self.Id) {
                 // queue
                 h.dir.Mutex.PushLockRequest(sender, resource, timestamp)
-            } else if h.dir.Mutex.IsLowerPriority(timestamp, sender, h.conf.Self.Id) {
-                // send ok
-                h.sendMutexResponse(sender, resource)
             } else {
-                // queue
-                h.dir.Mutex.PushLockRequest(sender, resource, timestamp)
+                // send ok
+                h.sendMutexResponse(sender, resource)
             }
 
             h.dir.Mutex.UpdateTimestamp(timestamp)
