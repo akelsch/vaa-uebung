@@ -1,7 +1,7 @@
 package directory
 
 import (
-    "github.com/akelsch/vaa/ueb03/internal/directory/state"
+    "github.com/akelsch/vaa/ueb03/internal/directory/mutex/state"
     "github.com/akelsch/vaa/ueb03/internal/util/collection"
     "github.com/akelsch/vaa/ueb03/internal/util/collection/queue"
 )
@@ -11,15 +11,13 @@ type MutexDirectory struct {
     lc        *collection.LamportClock
     queue     *collection.Queue
     state     state.State
-    responses map[uint64]bool
+    responses int
 }
 
 func NewMutexDirectory() *MutexDirectory {
     return &MutexDirectory{
-        lc:        &collection.LamportClock{},
-        queue:     collection.NewQueue(),
-        state:     state.RELEASED,
-        responses: make(map[uint64]bool),
+        lc:    &collection.LamportClock{},
+        queue: collection.NewQueue(),
     }
 }
 
@@ -61,22 +59,15 @@ func (md *MutexDirectory) NeedsToQueue(timestamp uint64, resource uint64, selfId
        (md.state == state.WANTED && resource == selfId) // FIXME guarantees correctness but does potentially cause deadlocks*/
 }
 
-func (md *MutexDirectory) RegisterResponse(node uint64) {
-    md.responses[node] = true
+func (md *MutexDirectory) RegisterResponse() {
+    md.responses++
 }
 
 func (md *MutexDirectory) CheckResponseCount(expected int) bool {
-    count := 0
-    for _, b := range md.responses {
-        if b {
-            count++
-        }
-    }
-
-    return count == expected
+    return md.responses == expected
 }
 
 func (md *MutexDirectory) Reset() {
     md.state = state.RELEASED
-    md.responses = make(map[uint64]bool)
+    md.responses = 0
 }

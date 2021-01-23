@@ -64,7 +64,7 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
                 h.forwardMessage(message)
             } else {
                 log.Printf("Received mutex response from node %d\n", sender)
-                h.dir.Mutex.RegisterResponse(sender)
+                h.dir.Mutex.RegisterResponse()
                 if h.dir.Mutex.CheckResponseCount(h.conf.GetAllNeighborsLength()) {
                     log.Printf("--- LOCKING RESOURCE %d ---\n", resource)
                     h.dir.Mutex.RegisterLock()
