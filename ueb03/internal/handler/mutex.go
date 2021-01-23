@@ -54,7 +54,6 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
             h.forwardMessage(message)
 
             if h.dir.Mutex.NeedsToQueue(timestamp, resource, h.conf.Self.Id) {
-                log.Printf("*** Queueing s=%d, r=%d, %d<%d\n", sender, resource, h.dir.Mutex.GetTimestamp(), timestamp)
                 // queue
                 h.dir.Mutex.PushLockRequest(sender, resource)
             } else {

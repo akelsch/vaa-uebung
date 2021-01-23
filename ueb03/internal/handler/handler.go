@@ -25,7 +25,7 @@ func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHand
         ln:   ln,
         quit: make(chan interface{}),
         conf: conf,
-        dir:  directory.NewDirectory(conf),
+        dir:  directory.NewDirectory(),
     }
 }
 

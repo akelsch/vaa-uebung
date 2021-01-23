@@ -117,8 +117,18 @@ func (h *ConnectionHandler) checkElectionVictory() {
             netutil.SendMessageSilently(address, message)
         }
 
-        // TODO do every x seconds not once
-        time.AfterFunc(5*time.Second, func() {
+        h.startTakingSnapshots()
+    }
+}
+
+func (h *ConnectionHandler) startTakingSnapshots() {
+    time.AfterFunc(4000*time.Millisecond, func() {
+        log.Println("------- TAKING SNAPSHOT -------")
+        h.dir.Snapshot.Reset()
+        h.dir.Snapshot.IsFirstMarker()
+        h.sentSnapshotMarkerToNeighbors()
+
+        time.AfterFunc(1000*time.Millisecond, func() {
             for _, neighbor := range h.conf.FindAllNeighbors() {
                 metadata := pbutil.CreateMetadata(h.conf.Self.Id, neighbor.Id, h.dir.Flooding.NextSequence())
                 message := pbutil.CreateSnapshotRequestMessage(metadata)
@@ -126,6 +136,7 @@ func (h *ConnectionHandler) checkElectionVictory() {
                 successLog := fmt.Sprintf("Sent snapshot request to node %d", neighbor.Id)
                 h.unicastMessage(neighbor, message, successLog)
             }
+            h.startTakingSnapshots()
         })
-    }
+    })
 }

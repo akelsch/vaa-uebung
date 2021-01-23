@@ -1,9 +1,6 @@
 package directory
 
-import (
-    "github.com/akelsch/vaa/ueb03/internal/config"
-    "sync"
-)
+import "sync"
 
 type Directory struct {
     mu       sync.Mutex
@@ -13,12 +10,12 @@ type Directory struct {
     Snapshot *SnapshotDirectory
 }
 
-func NewDirectory(conf *config.Config) *Directory {
+func NewDirectory() *Directory {
     return &Directory{
         Flooding: NewFloodingDirectory(),
         Mutex:    NewMutexDirectory(),
         Election: NewElectionDirectory(),
-        Snapshot: NewSnapshotDirectory(conf.Params.Balance),
+        Snapshot: NewSnapshotDirectory(),
     }
 }
 

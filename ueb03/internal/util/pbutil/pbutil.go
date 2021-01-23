@@ -1,15 +1,12 @@
 package pbutil
 
-import (
-    "github.com/akelsch/vaa/ueb03/api/pb"
-    "github.com/akelsch/vaa/ueb03/internal/directory"
-)
+import "github.com/akelsch/vaa/ueb03/api/pb"
 
 func CreateControlMessage(metadata *Metadata, command pb.ControlMessage_Command) *pb.Message {
     return &pb.Message{
         Identifier: metadata.Identifier,
         Sender:     metadata.sender,
-        // Broadcast -> no receiver necessary
+        // Broadcast or direct message -> no receiver necessary
         Msg: &pb.Message_ControlMessage{
             ControlMessage: &pb.ControlMessage{
                 Command: command,
@@ -140,7 +137,7 @@ func CreateSnapshotRequestMessage(metadata *Metadata) *pb.Message {
     }
 }
 
-func CreateSnapshotResponseMessage(metadata *Metadata, state *directory.State) *pb.Message {
+func CreateSnapshotResponseMessage(metadata *Metadata, balance int64, changes []int64) *pb.Message {
     return &pb.Message{
         Identifier: metadata.Identifier,
         Sender:     metadata.sender,
@@ -148,8 +145,20 @@ func CreateSnapshotResponseMessage(metadata *Metadata, state *directory.State) *
         Msg: &pb.Message_SnapshotMessage{
             SnapshotMessage: &pb.SnapshotMessage{
                 Type:    pb.SnapshotMessage_RES,
-                Balance: state.Balance,
-                Changes: state.Changes,
+                Balance: balance,
+                Changes: changes,
+            },
+        },
+    }
+}
+
+func CreateSnapshotMarkerMessage(metadata *Metadata) *pb.Message {
+    return &pb.Message{
+        // Direct message -> no identifier/receiver necessary
+        Sender: metadata.sender,
+        Msg: &pb.Message_SnapshotMessage{
+            SnapshotMessage: &pb.SnapshotMessage{
+                Type: pb.SnapshotMessage_MARKER,
             },
         },
     }
