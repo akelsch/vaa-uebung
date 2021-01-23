@@ -109,11 +109,23 @@ func (h *ConnectionHandler) checkElectionVictory() {
     if h.dir.Election.IsCoordinator(h.conf.Self.Id) {
         log.Println("------- ELECTION VICTORY -------")
 
+        // Flood START command
         metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
         message := pbutil.CreateControlMessage(metadata, pb.ControlMessage_START)
         for _, neighbor := range h.conf.Neighbors {
             address := neighbor.GetDialAddress()
             netutil.SendMessageSilently(address, message)
         }
+
+        // TODO do every x seconds not once
+        time.AfterFunc(5*time.Second, func() {
+            for _, neighbor := range h.conf.FindAllNeighbors() {
+                metadata := pbutil.CreateMetadata(h.conf.Self.Id, neighbor.Id, h.dir.Flooding.NextSequence())
+                message := pbutil.CreateSnapshotRequestMessage(metadata)
+                h.dir.Flooding.MarkAsHandled(metadata.Identifier)
+                successLog := fmt.Sprintf("Sent snapshot request to node %d", neighbor.Id)
+                h.unicastMessage(neighbor, message, successLog)
+            }
+        })
     }
 }

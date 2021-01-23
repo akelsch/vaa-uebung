@@ -5,6 +5,7 @@ import (
     "github.com/akelsch/vaa/ueb03/internal/config"
     "github.com/akelsch/vaa/ueb03/internal/directory"
     "github.com/akelsch/vaa/ueb03/internal/util/errutil"
+    "github.com/akelsch/vaa/ueb03/internal/util/netutil"
     "github.com/akelsch/vaa/ueb03/internal/util/randutil"
     "google.golang.org/protobuf/proto"
     "io"
@@ -24,7 +25,7 @@ func NewConnectionHandler(ln *net.Listener, conf *config.Config) *ConnectionHand
         ln:   ln,
         quit: make(chan interface{}),
         conf: conf,
-        dir:  directory.NewDirectory(),
+        dir:  directory.NewDirectory(conf),
     }
 }
 
@@ -65,11 +66,36 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
         h.handleMutexMessage(message)
     case *pb.Message_ElectionMessage:
         h.handleElectionMessage(message)
+    case *pb.Message_SnapshotMessage:
+        h.handleSnapshotMessage(message)
     }
 }
 
 func (h *ConnectionHandler) StartElection() {
     if randutil.RandomBool() {
         h.handleStartElection()
+    }
+}
+
+func (h *ConnectionHandler) forwardMessage(message *pb.Message) {
+    for _, neighbor := range h.conf.Neighbors {
+        address := neighbor.GetDialAddress()
+        //successLog := fmt.Sprintf("Forwarded message '%s' to node %d", message.GetIdentifier(), neighbor.Id)
+        netutil.SendMessageSilently(address, message)
+    }
+}
+
+func (h *ConnectionHandler) unicastMessage(node *config.Node, message *pb.Message, successLog string) {
+    if h.conf.IsNodeNeighbor(node.Id) {
+        // Direct message
+        address := node.GetDialAddress()
+        netutil.SendMessage(address, message, successLog)
+    } else {
+        // Flood neighbors
+        log.Println(successLog, "*")
+        for _, neighbor := range h.conf.Neighbors {
+            address := neighbor.GetDialAddress()
+            netutil.SendMessageSilently(address, message)
+        }
     }
 }

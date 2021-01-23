@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ueb03;
+
+option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
+
+message SnapshotMessage {
+  enum Type {
+    REQ = 0;
+    RES = 1;
+    MARKER = 2;
+  }
+
+  Type type = 1;
+  int64 balance = 2;
+  repeated int64 changes = 3;
+}

@@ -1,11 +1,14 @@
 package pbutil
 
-import "github.com/akelsch/vaa/ueb03/api/pb"
+import (
+    "github.com/akelsch/vaa/ueb03/api/pb"
+    "github.com/akelsch/vaa/ueb03/internal/directory"
+)
 
 func CreateControlMessage(metadata *Metadata, command pb.ControlMessage_Command) *pb.Message {
     return &pb.Message{
         Identifier: metadata.Identifier,
-        Sender: metadata.sender,
+        Sender:     metadata.sender,
         // Broadcast -> no receiver necessary
         Msg: &pb.Message_ControlMessage{
             ControlMessage: &pb.ControlMessage{
@@ -119,6 +122,34 @@ func CreateEchoMessage(sender uint64, initiator uint64) *pb.Message {
             ElectionMessage: &pb.ElectionMessage{
                 Type:      pb.ElectionMessage_ECHO,
                 Initiator: initiator,
+            },
+        },
+    }
+}
+
+func CreateSnapshotRequestMessage(metadata *Metadata) *pb.Message {
+    return &pb.Message{
+        Identifier: metadata.Identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
+        Msg: &pb.Message_SnapshotMessage{
+            SnapshotMessage: &pb.SnapshotMessage{
+                Type: pb.SnapshotMessage_REQ,
+            },
+        },
+    }
+}
+
+func CreateSnapshotResponseMessage(metadata *Metadata, state *directory.State) *pb.Message {
+    return &pb.Message{
+        Identifier: metadata.Identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
+        Msg: &pb.Message_SnapshotMessage{
+            SnapshotMessage: &pb.SnapshotMessage{
+                Type:    pb.SnapshotMessage_RES,
+                Balance: state.Balance,
+                Changes: state.Changes,
             },
         },
     }

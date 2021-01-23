@@ -63,10 +63,12 @@ func (h *ConnectionHandler) handleApplicationDefault(am *pb.ApplicationMessage, 
     if bi >= bj {
         plus := int64(math.Round(float64(bi) * (float64(p) / 100)))
         h.conf.Params.Balance = bj + plus
+        h.dir.Snapshot.AddChange(plus)
         log.Printf("Increasing balance by %d: Old = %d, New = %d (8A)\n", plus, bj, h.conf.Params.Balance)
     } else {
         minus := int64(math.Round(float64(bj) * (float64(p) / 100)))
         h.conf.Params.Balance = bj - minus
+        h.dir.Snapshot.AddChange(-minus)
         log.Printf("Decreasing balance by %d: Old = %d, New = %d (8B)\n", minus, bj, h.conf.Params.Balance)
     }
 
@@ -104,10 +106,12 @@ func (h *ConnectionHandler) handleApplicationResponse(am *pb.ApplicationMessage,
     if bj >= bi {
         plus := int64(math.Round(float64(bj) * (float64(p) / 100)))
         h.conf.Params.Balance = bi + plus
+        h.dir.Snapshot.AddChange(plus)
         log.Printf("Increasing balance by %d: Old = %d, New = %d (7A)\n", plus, bi, h.conf.Params.Balance)
     } else {
         minus := int64(math.Round(float64(bi) * (float64(p) / 100)))
         h.conf.Params.Balance = bi - minus
+        h.dir.Snapshot.AddChange(-minus)
         log.Printf("Decreasing balance by %d: Old = %d, New = %d (7B)\n", minus, bi, h.conf.Params.Balance)
     }
 }
@@ -122,6 +126,6 @@ func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
         h.sendMutexResponse(item.Sender, item.Resource)
     })
 
-    // Step 11
-    h.startFirstStep()
+    // TODO Step 11
+    //h.startFirstStep()
 }

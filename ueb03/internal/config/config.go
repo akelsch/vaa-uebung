@@ -113,6 +113,19 @@ func (c *Config) FindNeighborById(id uint64) *Node {
     return nil
 }
 
+func (c *Config) FindAllNeighbors() []*Node {
+    var neighbors []*Node
+
+    for i := range c.all {
+        neighbor := &c.all[i]
+        if neighbor != c.Self {
+            neighbors = append(neighbors, neighbor)
+        }
+    }
+
+    return neighbors
+}
+
 func (c *Config) IsNodeNeighbor(id uint64) bool {
     return c.FindNeighborById(id) != nil
 }

@@ -7,6 +7,7 @@ import "ControlMessage.proto";
 import "ApplicationMessage.proto";
 import "MutexMessage.proto";
 import "ElectionMessage.proto";
+import "SnapshotMessage.proto";
 
 message Message {
   string identifier = 1;
@@ -18,5 +19,6 @@ message Message {
     ApplicationMessage application_message = 5;
     MutexMessage mutex_message = 6;
     ElectionMessage election_message = 7;
+    SnapshotMessage snapshot_message = 8;
   }
 }
