@@ -24,10 +24,6 @@ func (l *LamportClock) Increment() LamportTime {
     return LamportTime(atomic.AddUint64(&l.counter, 1))
 }
 
-func (l *LamportClock) IncrementBy(n uint64) LamportTime {
-    return LamportTime(atomic.AddUint64(&l.counter, n))
-}
-
 // Witness is called to update our local clock if necessary after
 // witnessing a clock value received from another process
 func (l *LamportClock) Witness(v LamportTime) {

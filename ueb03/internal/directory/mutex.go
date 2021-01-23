@@ -26,8 +26,8 @@ func (md *MutexDirectory) GetTimestamp() uint64 {
     return uint64(md.lc.Time())
 }
 
-func (md *MutexDirectory) IncrementTimestampBy(n int) uint64 {
-    return uint64(md.lc.IncrementBy(uint64(n)))
+func (md *MutexDirectory) IncrementTimestamp() uint64 {
+    return uint64(md.lc.Increment())
 }
 
 func (md *MutexDirectory) UpdateTimestamp(timestamp uint64) {

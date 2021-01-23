@@ -14,10 +14,10 @@ func (h *ConnectionHandler) handleStart() {
 
     h.dir.Lock()
     defer h.dir.Unlock()
-    h.dir.Mutex.RegisterWant()
 
     // Step 3a - Request Critical Section
-    h.dir.Mutex.IncrementTimestampBy(h.conf.GetAllNeighborsLength())
+    h.dir.Mutex.RegisterWant()
+    h.dir.Mutex.IncrementTimestamp()
 
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
     message := pbutil.CreateMutexRequestMessage(metadata, node.Id, h.dir.Mutex.GetTimestamp())
