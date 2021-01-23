@@ -3,6 +3,7 @@ package handler
 import (
     "fmt"
     "github.com/akelsch/vaa/ueb03/api/pb"
+    "github.com/akelsch/vaa/ueb03/internal/util/collection/queue"
     "github.com/akelsch/vaa/ueb03/internal/util/pbutil"
     "github.com/akelsch/vaa/ueb03/internal/util/randutil"
     "log"
@@ -118,11 +119,10 @@ func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
     h.dir.Mutex.Reset()
 
     // Step 10
-    item := h.dir.Mutex.PopLockRequest()
-    for item != nil {
+    h.dir.Mutex.PopLockRequests(func(item *queue.Item) {
+        log.Printf("Popping s=%d, r=%d\n", item.Sender, item.Resource)
         h.sendMutexResponse(item.Sender, item.Resource)
-        item = h.dir.Mutex.PopLockRequest()
-    }
+    })
 
     // Step 11
     h.StartFirstStep()

@@ -12,19 +12,18 @@ func (h *ConnectionHandler) handleStart() {
     // Step 2
     node := h.conf.FindRandomNode()
 
+    // Step 3a - Request Critical Section
     h.dir.Lock()
     defer h.dir.Unlock()
-
-    // Step 3a - Request Critical Section
     h.dir.Mutex.RegisterWant()
-    h.dir.Mutex.IncrementTimestamp()
 
+    timestamp := h.dir.Mutex.IncrementTimestamp()
     metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
-    message := pbutil.CreateMutexRequestMessage(metadata, node.Id, h.dir.Mutex.GetTimestamp())
+    message := pbutil.CreateMutexRequestMessage(metadata, node.Id, timestamp)
     h.dir.Flooding.MarkAsHandled(metadata.Identifier)
 
     log.Printf("Broadcasting mutex request '%s' with resource = %d, timestamp = %d\n",
-        message.GetIdentifier(), node.Id, h.dir.Mutex.GetTimestamp())
+        message.GetIdentifier(), node.Id, timestamp)
     for _, neighbor := range h.conf.Neighbors {
         address := neighbor.GetDialAddress()
         netutil.SendMessageSilently(address, message)
@@ -51,8 +50,9 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
             h.forwardMessage(message)
 
             if h.dir.Mutex.NeedsToQueue(timestamp, resource, h.conf.Self.Id) {
+                log.Printf("*** Queueing s=%d, r=%d, %d<%d\n", sender, resource, h.dir.Mutex.GetTimestamp(), timestamp)
                 // queue
-                h.dir.Mutex.PushLockRequest(sender, resource, timestamp)
+                h.dir.Mutex.PushLockRequest(sender, resource)
             } else {
                 // send ok
                 h.sendMutexResponse(sender, resource)

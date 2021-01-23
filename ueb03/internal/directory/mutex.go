@@ -1,15 +1,15 @@
 package directory
 
 import (
-    "container/heap"
-    "github.com/akelsch/vaa/ueb03/internal/collection"
     "github.com/akelsch/vaa/ueb03/internal/directory/state"
+    "github.com/akelsch/vaa/ueb03/internal/util/collection"
+    "github.com/akelsch/vaa/ueb03/internal/util/collection/queue"
 )
 
 // Used for Ricart-Agrawala algorithm
 type MutexDirectory struct {
     lc        *collection.LamportClock
-    pq        *collection.PriorityQueue
+    queue     *collection.Queue
     state     state.State
     responses map[uint64]bool
 }
@@ -17,7 +17,8 @@ type MutexDirectory struct {
 func NewMutexDirectory() *MutexDirectory {
     return &MutexDirectory{
         lc:        &collection.LamportClock{},
-        pq:        &collection.PriorityQueue{},
+        queue:     collection.NewQueue(),
+        state:     state.RELEASED,
         responses: make(map[uint64]bool),
     }
 }
@@ -34,17 +35,16 @@ func (md *MutexDirectory) UpdateTimestamp(timestamp uint64) {
     md.lc.Witness(collection.LamportTime(timestamp))
 }
 
-func (md *MutexDirectory) PushLockRequest(sender uint64, resource uint64, timestamp uint64) {
-    heap.Push(md.pq, md.pq.NewItem(sender, resource, timestamp))
+func (md *MutexDirectory) PushLockRequest(sender uint64, resource uint64) {
+    item := queue.NewItem(sender, resource)
+    md.queue.Push(item)
 }
 
-func (md *MutexDirectory) PopLockRequest() *collection.Item {
-    if md.pq.HasNext() {
-        item := heap.Pop(md.pq).(*collection.Item)
-        return item
+func (md *MutexDirectory) PopLockRequests(f func(item *queue.Item)) {
+    for md.queue.HasNext() {
+        item := md.queue.Pop()
+        f(item)
     }
-
-    return nil
 }
 
 func (md *MutexDirectory) RegisterWant() {
@@ -57,8 +57,8 @@ func (md *MutexDirectory) RegisterLock() {
 
 func (md *MutexDirectory) NeedsToQueue(timestamp uint64, resource uint64, selfId uint64) bool {
     return md.state == state.HELD ||
-        (md.state == state.WANTED && md.GetTimestamp() < timestamp) ||
-        (md.state == state.WANTED && resource == selfId) // FIXME guarantees correctness but does potentially cause deadlocks
+        (md.state == state.WANTED && md.GetTimestamp() < timestamp) /* ||
+       (md.state == state.WANTED && resource == selfId) // FIXME guarantees correctness but does potentially cause deadlocks*/
 }
 
 func (md *MutexDirectory) RegisterResponse(node uint64) {
