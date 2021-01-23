@@ -11,6 +11,9 @@ import (
 func (h *ConnectionHandler) handleStart() {
     // Step 2
     node := h.conf.FindRandomNode()
+
+    h.dir.Lock()
+    defer h.dir.Unlock()
     h.dir.Mutex.RegisterCurrentResource(node.Id)
 
     // Step 3a - Request Critical Section
@@ -47,8 +50,13 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
             log.Printf("Received mutex request from node %d\n", sender)
             h.forwardMessage(message)
 
-            if !h.dir.Mutex.IsInterestedInResource(resource) ||
-                h.dir.Mutex.HasLowerPriority(timestamp, sender, h.conf.Self.Id) {
+            if !h.dir.Mutex.IsInterestedIn(resource, h.conf.Self.Id) {
+                // send ok
+                h.sendMutexResponse(sender, resource)
+            } else if h.dir.Mutex.IsUsing(resource, h.conf.Self.Id, sender) {
+                // queue
+                h.dir.Mutex.PushLockRequest(sender, resource, timestamp)
+            } else if h.dir.Mutex.IsLowerPriority(timestamp, sender, h.conf.Self.Id) {
                 // send ok
                 h.sendMutexResponse(sender, resource)
             } else {
@@ -65,6 +73,7 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
                 h.dir.Mutex.RegisterResponse(sender)
                 if h.dir.Mutex.CheckResponseCount(h.conf.GetAllNeighborsLength()) {
                     log.Printf("--- LOCKING RESOURCE %d ---\n", resource)
+                    h.dir.Mutex.RegisterLock()
                     h.startApplicationSteps(resource)
                 }
             }

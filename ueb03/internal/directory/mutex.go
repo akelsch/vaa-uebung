@@ -7,17 +7,18 @@ import (
 
 // Used for Ricart-Agrawala algorithm
 type MutexDirectory struct {
-    lc  *collection.LamportClock
-    pq  *collection.PriorityQueue
-    res map[uint64]bool
-    cur uint64
+    lc        *collection.LamportClock
+    pq        *collection.PriorityQueue
+    current   uint64          // Represents the resource the node is currently interested in
+    responses map[uint64]bool // Tracks mutex responses from other nodes
+    locked    bool            // Flag that indicates whether the critical section got entered (true) or not (false)
 }
 
 func NewMutexDirectory() *MutexDirectory {
     return &MutexDirectory{
-        lc:  &collection.LamportClock{},
-        pq:  &collection.PriorityQueue{},
-        res: make(map[uint64]bool),
+        lc:        &collection.LamportClock{},
+        pq:        &collection.PriorityQueue{},
+        responses: make(map[uint64]bool),
     }
 }
 
@@ -33,18 +34,6 @@ func (md *MutexDirectory) UpdateTimestamp(timestamp uint64) {
     md.lc.Witness(collection.LamportTime(timestamp))
 }
 
-func (md *MutexDirectory) RegisterCurrentResource(resource uint64) {
-    md.cur = resource
-}
-
-func (md *MutexDirectory) ResetCurrentResource() {
-    md.cur = 0
-}
-
-func (md *MutexDirectory) IsInterestedInResource(resource uint64) bool {
-    return resource == md.cur || md.pq.ContainsResource(resource)
-}
-
 func (md *MutexDirectory) PushLockRequest(sender uint64, resource uint64, timestamp uint64) {
     heap.Push(md.pq, md.pq.NewItem(sender, resource, timestamp))
 }
@@ -58,17 +47,17 @@ func (md *MutexDirectory) PopLockRequest() *collection.Item {
     return nil
 }
 
-func (md *MutexDirectory) RegisterResponse(node uint64) {
-    md.res[node] = true
+func (md *MutexDirectory) RegisterCurrentResource(resource uint64) {
+    md.current = resource
 }
 
-func (md *MutexDirectory) ResetResponses() {
-    md.res = make(map[uint64]bool)
+func (md *MutexDirectory) RegisterResponse(node uint64) {
+    md.responses[node] = true
 }
 
 func (md *MutexDirectory) CheckResponseCount(expected int) bool {
     count := 0
-    for _, b := range md.res {
+    for _, b := range md.responses {
         if b {
             count++
         }
@@ -77,7 +66,31 @@ func (md *MutexDirectory) CheckResponseCount(expected int) bool {
     return count == expected
 }
 
-func (md *MutexDirectory) HasLowerPriority(otherTimestamp uint64, otherId uint64, ownId uint64) bool {
+func (md *MutexDirectory) RegisterLock() {
+    md.locked = true
+}
+
+func (md *MutexDirectory) Reset() {
+    md.current = 0
+    md.responses = make(map[uint64]bool)
+    md.locked = false
+}
+
+func (md *MutexDirectory) IsInterestedIn(resource uint64, ownId uint64) bool {
+    isInterestedInSameResource := resource == md.current
+    isRequestingAndInterestedInSelf := md.current != 0 && resource == ownId
+    return isInterestedInSameResource || isRequestingAndInterestedInSelf
+}
+
+func (md *MutexDirectory) IsUsing(resource uint64, ownId uint64, otherId uint64) bool {
+    if md.locked {
+        return resource == md.current || md.current == otherId
+    }
+
+    return resource == ownId // FIXME causing deadlocks
+}
+
+func (md *MutexDirectory) IsLowerPriority(otherTimestamp uint64, otherId uint64, ownId uint64) bool {
     ownTimestamp := md.GetTimestamp()
 
     // handle concurrent events so the queue does not break
