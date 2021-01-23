@@ -108,5 +108,12 @@ func (h *ConnectionHandler) checkElectionVictory() {
 
     if h.dir.Election.IsCoordinator(h.conf.Self.Id) {
         log.Println("------- ELECTION VICTORY -------")
+
+        metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
+        message := pbutil.CreateControlMessage(metadata, pb.ControlMessage_START)
+        for _, neighbor := range h.conf.Neighbors {
+            address := neighbor.GetDialAddress()
+            netutil.SendMessageSilently(address, message)
+        }
     }
 }

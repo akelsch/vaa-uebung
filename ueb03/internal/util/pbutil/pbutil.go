@@ -2,9 +2,11 @@ package pbutil
 
 import "github.com/akelsch/vaa/ueb03/api/pb"
 
-func CreateControlMessage(sender uint64, command pb.ControlMessage_Command) *pb.Message {
+func CreateControlMessage(metadata *Metadata, command pb.ControlMessage_Command) *pb.Message {
     return &pb.Message{
-        Sender: sender,
+        Identifier: metadata.Identifier,
+        Sender: metadata.sender,
+        // Broadcast -> no receiver necessary
         Msg: &pb.Message_ControlMessage{
             ControlMessage: &pb.ControlMessage{
                 Command: command,

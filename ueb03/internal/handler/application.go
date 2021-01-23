@@ -31,8 +31,6 @@ func (h *ConnectionHandler) handleApplicationMessage(message *pb.Message) {
     h.dir.Lock()
     defer h.dir.Unlock()
     if !h.dir.Flooding.IsHandled(identifier) {
-        h.dir.Flooding.MarkAsHandled(identifier)
-
         if receiver != h.conf.Self.Id {
             h.forwardMessage(message)
         } else {

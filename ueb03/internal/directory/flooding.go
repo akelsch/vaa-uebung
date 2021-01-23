@@ -13,7 +13,11 @@ func NewFloodingDirectory() *FloodingDirectory {
 }
 
 func (fd *FloodingDirectory) IsHandled(identifier string) bool {
-    return fd.handled[identifier] == true
+    handled := fd.handled[identifier] == true
+    if !handled {
+        fd.MarkAsHandled(identifier)
+    }
+    return handled
 }
 
 func (fd *FloodingDirectory) MarkAsHandled(identifier string) {

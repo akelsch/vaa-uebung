@@ -14,16 +14,25 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
 
     switch cm.Command {
     case pb.ControlMessage_START:
-        h.handleStart()
+        h.handleStart(message)
     case pb.ControlMessage_EXIT:
         h.handleExit()
     case pb.ControlMessage_EXIT_ALL:
-        h.handleExitAll(message.GetSender())
+        h.handleExitAll(message)
     }
 }
 
-func (h *ConnectionHandler) handleStart() {
-    h.startFirstStep()
+func (h *ConnectionHandler) handleStart(message *pb.Message) {
+    identifier := message.GetIdentifier()
+
+    h.dir.Lock()
+    defer h.dir.Unlock()
+
+    if !h.dir.Flooding.IsHandled(identifier) {
+        h.forwardMessage(message)
+        log.Println("Starting...")
+        h.startFirstStep()
+    }
 }
 
 func (h *ConnectionHandler) handleExit() {
@@ -31,7 +40,9 @@ func (h *ConnectionHandler) handleExit() {
     (*h.ln).Close()
 }
 
-func (h *ConnectionHandler) handleExitAll(sender uint64) {
+func (h *ConnectionHandler) handleExitAll(message *pb.Message) {
+    sender := message.GetSender()
+
     select {
     case <-h.quit:
         // Already exiting, ignore
@@ -40,7 +51,8 @@ func (h *ConnectionHandler) handleExitAll(sender uint64) {
         for _, neighbor := range h.conf.Neighbors {
             if neighbor.Id != sender {
                 address := neighbor.GetDialAddress()
-                message := pbutil.CreateControlMessage(h.conf.Self.Id, pb.ControlMessage_EXIT_ALL)
+                metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, 0)
+                message := pbutil.CreateControlMessage(metadata, pb.ControlMessage_EXIT_ALL)
                 successLog := fmt.Sprintf("Propagated exit to node %d", neighbor.Id)
                 netutil.SendMessageIgnoringErrors(address, message, successLog)
             }

@@ -47,8 +47,6 @@ func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {
     h.dir.Lock()
     defer h.dir.Unlock()
     if !h.dir.Flooding.IsHandled(identifier) {
-        h.dir.Flooding.MarkAsHandled(identifier)
-
         // Step 3b - Request Handling
         switch mm.Type {
         case pb.MutexMessage_REQ:
