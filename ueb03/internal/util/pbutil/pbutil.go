@@ -98,24 +98,24 @@ func CreateMutexResponseMessage(metadata *Metadata, resource uint64) *pb.Message
     }
 }
 
-func CreateExplorerMessage(sender uint64, initiator string) *pb.Message {
+func CreateExplorerMessage(sender uint64, initiator uint64) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ElectionMessage{
-            ElectionMessage: &pb.Election{
-                Type:      pb.Election_EXPLORER,
+            ElectionMessage: &pb.ElectionMessage{
+                Type:      pb.ElectionMessage_EXPLORER,
                 Initiator: initiator,
             },
         },
     }
 }
 
-func CreateEchoMessage(sender uint64, initiator string) *pb.Message {
+func CreateEchoMessage(sender uint64, initiator uint64) *pb.Message {
     return &pb.Message{
         Sender: sender,
         Msg: &pb.Message_ElectionMessage{
-            ElectionMessage: &pb.Election{
-                Type:      pb.Election_ECHO,
+            ElectionMessage: &pb.ElectionMessage{
+                Type:      pb.ElectionMessage_ECHO,
                 Initiator: initiator,
             },
         },

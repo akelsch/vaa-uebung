@@ -10,6 +10,10 @@ func Init(id uint64) {
     rand.Seed(time.Now().UnixNano() + int64(id))
 }
 
+func RandomBool() bool {
+    return RandomInt(0, 1) == 0
+}
+
 // Generates a random number where min and max are inclusive.
 func RandomInt(min, max int) int {
     return rand.Intn(max-min+1) + min

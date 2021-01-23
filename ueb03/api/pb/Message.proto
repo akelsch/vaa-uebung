@@ -6,7 +6,7 @@ option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
 import "ControlMessage.proto";
 import "ApplicationMessage.proto";
 import "MutexMessage.proto";
-import "Election.proto";
+import "ElectionMessage.proto";
 
 message Message {
   string identifier = 1;
@@ -17,6 +17,6 @@ message Message {
     ControlMessage control_message = 4;
     ApplicationMessage application_message = 5;
     MutexMessage mutex_message = 6;
-    Election election_message = 7;
+    ElectionMessage election_message = 7;
   }
 }

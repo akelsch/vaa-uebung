@@ -6,14 +6,14 @@ type Directory struct {
     mu       sync.Mutex
     Flooding *FloodingDirectory
     Mutex    *MutexDirectory
-    //Election *ElectionDirectory
+    Election *ElectionDirectory
 }
 
 func NewDirectory() *Directory {
     return &Directory{
         Flooding: NewFloodingDirectory(),
         Mutex:    NewMutexDirectory(),
-        //Election: NewElectionDirectory(),
+        Election: NewElectionDirectory(),
     }
 }
 

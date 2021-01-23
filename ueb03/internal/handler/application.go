@@ -125,5 +125,5 @@ func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
     })
 
     // Step 11
-    h.StartFirstStep()
+    h.startFirstStep()
 }

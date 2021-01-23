@@ -19,9 +19,11 @@ func (h *ConnectionHandler) handleControlMessage(message *pb.Message) {
         h.handleExit()
     case pb.ControlMessage_EXIT_ALL:
         h.handleExitAll(message.GetSender())
-    //case pb.ControlMessage_START_ELECTION:
-    //    h.handleStartElection()
     }
+}
+
+func (h *ConnectionHandler) handleStart() {
+    h.startFirstStep()
 }
 
 func (h *ConnectionHandler) handleExit() {

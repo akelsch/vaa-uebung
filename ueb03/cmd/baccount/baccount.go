@@ -41,7 +41,7 @@ func main() {
 
     // Handle connections
     h := handler.NewConnectionHandler(&ln, conf)
-    h.StartFirstStep()
+    h.StartElection()
     for {
         conn, err := ln.Accept()
         if err != nil {

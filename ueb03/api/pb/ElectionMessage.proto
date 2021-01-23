@@ -3,12 +3,12 @@ package ueb03;
 
 option go_package = "github.com/akelsch/vaa/ueb03/api/pb";
 
-message Election {
+message ElectionMessage {
   enum Type {
     EXPLORER = 0;
     ECHO = 1;
   }
 
   Type type = 1;
-  string initiator = 2;
+  uint64 initiator = 2;
 }

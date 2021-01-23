@@ -5,29 +5,35 @@ import (
     "github.com/akelsch/vaa/ueb03/api/pb"
     "github.com/akelsch/vaa/ueb03/internal/util/netutil"
     "github.com/akelsch/vaa/ueb03/internal/util/pbutil"
+    "github.com/akelsch/vaa/ueb03/internal/util/randutil"
     "log"
+    "time"
 )
 
-func (h *ConnectionHandler) handleStart() {
-    // Step 2
-    node := h.conf.FindRandomNode()
+func (h *ConnectionHandler) startFirstStep() {
+    // Step 1
+    seconds := randutil.RandomInt(0, 3)
+    time.AfterFunc(time.Duration(seconds)*time.Second, func() {
+        // Step 2
+        node := h.conf.FindRandomNode()
 
-    // Step 3a - Request Critical Section
-    h.dir.Lock()
-    defer h.dir.Unlock()
-    h.dir.Mutex.RegisterWant()
+        // Step 3a - Request Critical Section
+        h.dir.Lock()
+        defer h.dir.Unlock()
+        h.dir.Mutex.RegisterWant()
 
-    timestamp := h.dir.Mutex.IncrementTimestamp()
-    metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
-    message := pbutil.CreateMutexRequestMessage(metadata, node.Id, timestamp)
-    h.dir.Flooding.MarkAsHandled(metadata.Identifier)
+        timestamp := h.dir.Mutex.IncrementTimestamp()
+        metadata := pbutil.CreateMetadata(h.conf.Self.Id, 0, h.dir.Flooding.NextSequence())
+        message := pbutil.CreateMutexRequestMessage(metadata, node.Id, timestamp)
+        h.dir.Flooding.MarkAsHandled(metadata.Identifier)
 
-    log.Printf("Broadcasting mutex request '%s' with resource = %d, timestamp = %d\n",
-        message.GetIdentifier(), node.Id, timestamp)
-    for _, neighbor := range h.conf.Neighbors {
-        address := neighbor.GetDialAddress()
-        netutil.SendMessageSilently(address, message)
-    }
+        log.Printf("Broadcasting mutex request '%s' with resource = %d, timestamp = %d\n",
+            message.GetIdentifier(), node.Id, timestamp)
+        for _, neighbor := range h.conf.Neighbors {
+            address := neighbor.GetDialAddress()
+            netutil.SendMessageSilently(address, message)
+        }
+    })
 }
 
 func (h *ConnectionHandler) handleMutexMessage(message *pb.Message) {

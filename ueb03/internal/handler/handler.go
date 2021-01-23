@@ -10,7 +10,6 @@ import (
     "io"
     "log"
     "net"
-    "time"
 )
 
 type ConnectionHandler struct {
@@ -64,13 +63,13 @@ func (h *ConnectionHandler) HandleConnection(conn net.Conn) {
         h.handleApplicationMessage(message)
     case *pb.Message_MutexMessage:
         h.handleMutexMessage(message)
-    //case *pb.Message_Election:
-    //    h.handleElectionMessage(message)
+    case *pb.Message_ElectionMessage:
+        h.handleElectionMessage(message)
     }
 }
 
-func (h *ConnectionHandler) StartFirstStep() {
-    // Step 1
-    seconds := randutil.RandomInt(0, 3)
-    time.AfterFunc(time.Duration(seconds)*time.Second, h.handleStart)
+func (h *ConnectionHandler) StartElection() {
+    if randutil.RandomBool() {
+        h.handleStartElection()
+    }
 }
