@@ -124,8 +124,10 @@ func (h *ConnectionHandler) checkElectionVictory() {
 func (h *ConnectionHandler) startTakingSnapshots() {
     time.AfterFunc(4000*time.Millisecond, func() {
         log.Println("------- TAKING SNAPSHOT -------")
+
         h.dir.Snapshot.Reset()
         h.dir.Snapshot.IsFirstMarker()
+        h.dir.Snapshot.RecordState(h.conf.Params.Balance)
         h.sentSnapshotMarkerToNeighbors()
 
         time.AfterFunc(1000*time.Millisecond, func() {

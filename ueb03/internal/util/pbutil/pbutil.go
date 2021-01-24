@@ -137,16 +137,17 @@ func CreateSnapshotRequestMessage(metadata *Metadata) *pb.Message {
     }
 }
 
-func CreateSnapshotResponseMessage(metadata *Metadata, balance int64, changes []int64) *pb.Message {
+func CreateSnapshotResponseMessage(metadata *Metadata, balance int64, changes []int64, finished bool) *pb.Message {
     return &pb.Message{
         Identifier: metadata.Identifier,
         Sender:     metadata.sender,
         Receiver:   metadata.receiver,
         Msg: &pb.Message_SnapshotMessage{
             SnapshotMessage: &pb.SnapshotMessage{
-                Type:    pb.SnapshotMessage_RES,
-                Balance: balance,
-                Changes: changes,
+                Type:     pb.SnapshotMessage_RES,
+                Balance:  balance,
+                Changes:  changes,
+                Finished: finished,
             },
         },
     }
@@ -154,8 +155,9 @@ func CreateSnapshotResponseMessage(metadata *Metadata, balance int64, changes []
 
 func CreateSnapshotMarkerMessage(metadata *Metadata) *pb.Message {
     return &pb.Message{
-        // Direct message -> no identifier/receiver necessary
-        Sender: metadata.sender,
+        Identifier: metadata.Identifier,
+        Sender:     metadata.sender,
+        Receiver:   metadata.receiver,
         Msg: &pb.Message_SnapshotMessage{
             SnapshotMessage: &pb.SnapshotMessage{
                 Type: pb.SnapshotMessage_MARKER,

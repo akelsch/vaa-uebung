@@ -125,6 +125,6 @@ func (h *ConnectionHandler) handleApplicationAcknowledgment(sender uint64) {
         h.sendMutexResponse(item.Sender, item.Resource)
     })
 
-    // TODO Step 11
-    //h.startFirstStep()
+    // Step 11
+    h.startFirstStep()
 }

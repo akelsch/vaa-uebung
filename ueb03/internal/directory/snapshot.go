@@ -6,10 +6,11 @@ import (
 )
 
 type SnapshotDirectory struct {
-    firstMarker bool
-    Balance     int64
-    Records     map[uint64]Record
-    Responses   []*pb.Message
+    firstMarker     bool
+    Balance         int64
+    Records         map[uint64]Record
+    Responses       []*pb.Message
+    PreviousBalance int64
 }
 
 type Record struct {
@@ -79,8 +80,14 @@ func (sd *SnapshotDirectory) StoreResponse(message *pb.Message) {
     sd.Responses = append(sd.Responses, message)
 }
 
-func (sd *SnapshotDirectory) AreAllChannelsClosed(message *pb.Message) {
-    sd.Responses = append(sd.Responses, message)
+func (sd *SnapshotDirectory) AreAllRecordingsStopped() bool {
+    for _, record := range sd.Records {
+        if record.Recording {
+            return false
+        }
+    }
+
+    return true
 }
 
 func (sd *SnapshotDirectory) Reset() {
