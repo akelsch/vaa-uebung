@@ -58,10 +58,10 @@ func (h *ConnectionHandler) handleSnapshotResponse(message *pb.Message) {
         previousBalance := h.dir.Snapshot.PreviousBalance
         currentBalance := h.dir.Snapshot.Balance
 
-        fmt.Println(currentBalance, h.dir.Snapshot.ChangesAsArray(), h.dir.Snapshot.AreAllRecordingsStopped())
+        fmt.Println(h.conf.Self.Id, currentBalance)
         for _, res := range h.dir.Snapshot.Responses {
             sm := res.GetSnapshotMessage()
-            fmt.Println(sm.GetBalance(), sm.GetChanges(), sm.GetFinished())
+            fmt.Println(res.GetSender(), sm.GetBalance())
             currentBalance += sm.GetBalance()
         }
 
