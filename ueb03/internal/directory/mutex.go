@@ -55,8 +55,7 @@ func (md *MutexDirectory) RegisterLock() {
 
 func (md *MutexDirectory) NeedsToQueue(timestamp uint64, resource uint64, selfId uint64) bool {
     return md.state == state.HELD ||
-        (md.state == state.WANTED && md.GetTimestamp() < timestamp) ||
-        (md.state == state.WANTED && resource == selfId) // FIXME guarantees correctness but does potentially cause deadlocks
+        (md.state == state.WANTED && md.GetTimestamp() < timestamp)
 }
 
 func (md *MutexDirectory) RegisterResponse() {
