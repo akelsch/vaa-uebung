@@ -3,7 +3,7 @@
 - Programmiersprache: Go
 - Netzwerkprotokoll: TCP
 - Nachrichtenformat: Protocol Buffers (protobuf)
-- Programmdateien: [baccount](cmd/baccount) und graphgen (siehe ueb01)
+- Programmdateien: [baccount](./cmd/baccount) und graphgen (siehe ueb01)
 
 ## Idee
 
