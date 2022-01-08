@@ -9,7 +9,11 @@ Run `go build` or better `go install` in any `/cmd` subdirectory to install an e
 1. Install protoc (v3.19.2), e.g. using `scoop install protobuf`
 2. Install protoc-gen-go (v1.27.1), e.g. using `go install google.golang.org/protobuf/cmd/protoc-gen-go@latest`
 
-Compilation of proto files can be done using `protoc --proto_path=./api/pb --go_out=./api/pb --go_opt=paths=source_relative ./api/pb/*.proto` relative to one of the submodules.
+Compilation of proto files can be done using the following command relative to one of the submodules:
+
+```
+protoc --proto_path=./api/pb --go_out=./api/pb --go_opt=paths=source_relative ./api/pb/*.proto
+```
 
 ## IntelliJ Support
 
